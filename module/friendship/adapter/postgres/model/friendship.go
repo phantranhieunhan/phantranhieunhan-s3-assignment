@@ -12,3 +12,5 @@ type Friendship struct {
 func (r Friendship) TableName() string {
 	return "friendships"
 }
+
+type Friendships []Friendship

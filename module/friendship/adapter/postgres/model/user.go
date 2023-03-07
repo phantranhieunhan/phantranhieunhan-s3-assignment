@@ -10,3 +10,5 @@ type User struct {
 func (r User) TableName() string {
 	return "users"
 }
+
+type Users []User

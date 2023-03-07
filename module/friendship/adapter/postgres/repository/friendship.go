@@ -43,7 +43,7 @@ func (f FriendshipRepository) UpdateStatus(ctx context.Context, id string, statu
 	return nil
 }
 
-func (f FriendshipRepository) GetFriendshipByUserID(ctx context.Context, userID, friendID string) (domain.Friendship, error) {
+func (f FriendshipRepository) GetFriendshipByUserIDs(ctx context.Context, userID, friendID string) (domain.Friendship, error) {
 	condition := map[string]interface{}{
 		"user_id":   userID,
 		"friend_id": friendID,
@@ -57,4 +57,20 @@ func (f FriendshipRepository) GetFriendshipByUserID(ctx context.Context, userID,
 	}
 
 	return convert.ToFriendshipDomain(m), nil
+}
+
+func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context, userID string, status domain.FriendshipStatus) (domain.Friendships, error) {
+	condition := map[string]interface{}{
+		"user_id": userID,
+		"status":  status,
+	}
+	var m model.Friendships
+	if err := f.Model(ctx).Table(model.Friendship{}.TableName()).Where(condition).Find(&m).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return domain.Friendships{}, domain.ErrRecordNotFound
+		}
+		return domain.Friendships{}, common.ErrDB(err)
+	}
+
+	return convert.ToFriendshipsDomain(m), nil
 }

@@ -10,34 +10,49 @@ import (
 
 type ConnectFriendshipRepo interface {
 	Create(ctx context.Context, d domain.Friendship) (string, error)
-	GetFriendshipByUserID(ctx context.Context, userID, friendID string) (domain.Friendship, error)
+	GetFriendshipByUserIDs(ctx context.Context, userID, friendID string) (domain.Friendship, error)
 	UpdateStatus(ctx context.Context, id string, status domain.FriendshipStatus) error
 }
 
-type ConnectFriendshipHandler struct {
-	repo       ConnectFriendshipRepo
-	transactor Transactor
+type UserRepo interface {
+	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error)
 }
 
-func NewConnectFriendshipHandler(repo ConnectFriendshipRepo, transactor Transactor) ConnectFriendshipHandler {
+type ConnectFriendshipHandler struct {
+	friendshipRepo ConnectFriendshipRepo
+	userRepo       UserRepo
+	transactor     Transactor
+}
+
+func NewConnectFriendshipHandler(repo ConnectFriendshipRepo, userRepo UserRepo, transactor Transactor) ConnectFriendshipHandler {
 	return ConnectFriendshipHandler{
-		repo:       repo,
-		transactor: transactor,
+		friendshipRepo: repo,
+		userRepo:       userRepo,
+		transactor:     transactor,
 	}
 }
 
-func (h ConnectFriendshipHandler) Create(ctx context.Context, d domain.Friendship) (string, error) {
+func (h ConnectFriendshipHandler) Handle(ctx context.Context, userEmail, friendEmail string) (string, error) {
+	userIDs, err := h.userRepo.GetUserIDsByEmails(ctx, []string{userEmail, friendEmail})
+	if err != nil {
+		return "", common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
+	}
 	var id string
-	d.Status = domain.FriendshipStatusFriended
-	err := h.transactor.WithinTransaction(ctx, func(ctx context.Context) error {
-		f, err := h.repo.GetFriendshipByUserID(ctx, d.UserID, d.FriendID)
+	d := domain.Friendship{
+		Status: domain.FriendshipStatusFriended,
+		UserID: userIDs[userEmail],
+		FriendID: userIDs[friendEmail],
+	}
+
+	err = h.transactor.WithinTransaction(ctx, func(ctx context.Context) error {
+		f, err := h.friendshipRepo.GetFriendshipByUserIDs(ctx, d.UserID, d.FriendID)
 		if err != nil && err != domain.ErrRecordNotFound {
-			logger.Errorf("Create.GetFriendshipByUserID %w", err)
+			logger.Errorf("Create.GetFriendshipByUserIDs %w", err)
 			return common.ErrCannotGetEntity(d.DomainName(), err)
 		}
 
 		if err == domain.ErrRecordNotFound {
-			id, err = h.repo.Create(ctx, d)
+			id, err = h.friendshipRepo.Create(ctx, d)
 			if err != nil {
 				logger.Errorf("repo.Create %w", err)
 				return common.ErrCannotCreateEntity(d.DomainName(), err)
@@ -47,7 +62,7 @@ func (h ConnectFriendshipHandler) Create(ctx context.Context, d domain.Friendshi
 				logger.Errorf("Status.CanConnect")
 				return common.ErrInvalidRequest(domain.ErrFriendshipIsUnavailable, "")
 			}
-			if err = h.repo.UpdateStatus(ctx, f.Id, domain.FriendshipStatusFriended); err != nil {
+			if err = h.friendshipRepo.UpdateStatus(ctx, f.Id, domain.FriendshipStatusFriended); err != nil {
 				logger.Errorf("repo.UpdateStatus %w", err)
 				return common.ErrCannotUpdateEntity(d.DomainName(), err)
 			}

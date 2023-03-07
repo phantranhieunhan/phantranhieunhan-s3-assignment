@@ -28,3 +28,11 @@ func ToFriendshipDomain(d model.Friendship) domain.Friendship {
 		Status:   d.Status,
 	}
 }
+
+func ToFriendshipsDomain(m model.Friendships) domain.Friendships {
+	ds := make(domain.Friendships, 0, len(m)) 
+	for _, v := range m {
+		ds = append(ds, ToFriendshipDomain(v))
+	}
+	return ds
+}

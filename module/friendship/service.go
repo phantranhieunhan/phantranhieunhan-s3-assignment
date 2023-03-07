@@ -12,9 +12,10 @@ import (
 
 func New(r *gin.Engine, db postgres.Database) {
 	friendshipRepo := repository.NewFriendshipRepository(db)
+	userRepo := repository.NewUserRepository(db)
 	application := app.Application{
 		Commands: app.Commands{
-			ConnectFriendship: command.NewConnectFriendshipHandler(friendshipRepo, db),
+			ConnectFriendship: command.NewConnectFriendshipHandler(friendshipRepo, userRepo, db),
 		},
 		Queries: app.Queries{},
 	}

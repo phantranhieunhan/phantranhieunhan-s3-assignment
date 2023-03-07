@@ -29,3 +29,5 @@ type Friendship struct {
 func (r Friendship) DomainName() string {
 	return "Friendship"
 }
+
+type Friendships []Friendship

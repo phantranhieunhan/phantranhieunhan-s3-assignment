@@ -21,7 +21,7 @@ func (m *MockFriendshipRepository) UpdateStatus(ctx context.Context, id string, 
 	return args.Error(0)
 }
 
-func (m *MockFriendshipRepository) GetFriendshipByUserID(ctx context.Context, userID, friendID string) (domain.Friendship, error) {
+func (m *MockFriendshipRepository) GetFriendshipByUserIDs(ctx context.Context, userID, friendID string) (domain.Friendship, error) {
 	args := m.Called(ctx, userID, friendID)
 	return args.Get(0).(domain.Friendship), args.Error(1)
 }

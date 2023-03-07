@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/phantranhieunhan/s3-assignment/common"
 	"github.com/phantranhieunhan/s3-assignment/common/logger"
-	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/port/constant"
 )
 
@@ -41,12 +40,7 @@ func (s *Server) ConnectFriendship(c *gin.Context) {
 		panic(err)
 	}
 
-	d := domain.Friendship{
-		UserID:   req.Friends[0],
-		FriendID: req.Friends[1],
-	}
-
-	_, err = s.app.Commands.ConnectFriendship.Create(c.Request.Context(), d)
+	_, err = s.app.Commands.ConnectFriendship.Handle(c.Request.Context(), req.Friends[0], req.Friends[1])
 	if err != nil {
 		logger.Error("ConnectFriendship.Create: ", err)
 		panic(err)
