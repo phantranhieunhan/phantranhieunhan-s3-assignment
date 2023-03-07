@@ -1,0 +1,6 @@
+ENV: dev
+
+POSTGRES_URL: postgres://postgres:changeme@localhost:5432/postgres
+
+server:
+  PORT: 3001

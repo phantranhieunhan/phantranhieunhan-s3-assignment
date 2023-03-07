@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  es_microservice:
+    container_name: es_service
+    build:
+      context: .
+      dockerfile: es.Dockerfile
+    volumes:
+      - ./:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+     - postgres
+     - pgadmin
+    networks: [ "microservices" ]
+    restart: always
+    environment:
+      - POSTGRES_URL=postgres://postgres:changeme@postgres_container:5432/postgres
+      - PORT=3000
+      - ENV=prod
+
+  postgres:
+    container_name: postgres_container
+    image: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      PGDATA: /data/postgres
+    volumes:
+       - postgres:/data/postgres
+       - ./migration:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - microservices
+    restart: unless-stopped
+  
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+       - pgadmin:/var/lib/pgadmin
+
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - microservices
+    restart: unless-stopped
+
+networks:
+  microservices:
+    name: microservices
+
+volumes:
+    postgres:
+    pgadmin:
