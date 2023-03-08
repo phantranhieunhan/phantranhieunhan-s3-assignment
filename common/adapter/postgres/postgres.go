@@ -23,7 +23,7 @@ func NewDatabase() Database {
 		log.Fatalln(err)
 	}
 
-	db.Debug()
+	db = db.Debug()
 
 	return Database{
 		db: db,

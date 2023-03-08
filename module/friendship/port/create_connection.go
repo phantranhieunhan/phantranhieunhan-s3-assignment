@@ -42,7 +42,7 @@ func (s *Server) ConnectFriendship(c *gin.Context) {
 
 	_, err = s.app.Commands.ConnectFriendship.Handle(c.Request.Context(), req.Friends[0], req.Friends[1])
 	if err != nil {
-		logger.Error("ConnectFriendship.Create: ", err)
+		logger.Error("ConnectFriendship.Handle: ", err)
 		panic(err)
 	}
 

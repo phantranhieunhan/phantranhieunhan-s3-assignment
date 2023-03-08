@@ -44,12 +44,8 @@ func (f FriendshipRepository) UpdateStatus(ctx context.Context, id string, statu
 }
 
 func (f FriendshipRepository) GetFriendshipByUserIDs(ctx context.Context, userID, friendID string) (domain.Friendship, error) {
-	condition := map[string]interface{}{
-		"user_id":   userID,
-		"friend_id": friendID,
-	}
 	var m model.Friendship
-	if err := f.Model(ctx).Table(model.Friendship{}.TableName()).Where(condition).First(&m).Error; err != nil {
+	if err := f.Model(ctx).Table(model.Friendship{}.TableName()).Where("(user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)", userID, friendID, friendID, userID).First(&m).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return domain.Friendship{}, domain.ErrRecordNotFound
 		}
@@ -59,13 +55,9 @@ func (f FriendshipRepository) GetFriendshipByUserIDs(ctx context.Context, userID
 	return convert.ToFriendshipDomain(m), nil
 }
 
-func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context, userID string, status domain.FriendshipStatus) (domain.Friendships, error) {
-	condition := map[string]interface{}{
-		"user_id": userID,
-		"status":  status,
-	}
+func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context, userID string, status ...domain.FriendshipStatus) (domain.Friendships, error) {
 	var m model.Friendships
-	if err := f.Model(ctx).Table(model.Friendship{}.TableName()).Where(condition).Find(&m).Error; err != nil {
+	if err := f.Model(ctx).Table(model.Friendship{}.TableName()).Where("(user_id = ? OR friend_id = ?) AND status IN ?", userID, userID, status).Find(&m).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return domain.Friendships{}, domain.ErrRecordNotFound
 		}

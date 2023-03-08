@@ -39,3 +39,23 @@ func (f UserRepository) GetUserIDsByEmails(ctx context.Context, emails []string)
 
 	return result, nil
 }
+
+func (f UserRepository) GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, error) {
+	var users model.Users
+	if err := f.Model(ctx).Table(model.User{}.TableName()).Where("id IN ?", userIDs).Find(&users).Error; err != nil {
+		zResult := make(map[string]string, 0)
+		if err == gorm.ErrRecordNotFound {
+			return zResult, domain.ErrRecordNotFound
+		}
+		return zResult, common.ErrDB(err)
+	}
+	if len(users) != len(userIDs) {
+		return nil, domain.ErrNotFoundUserByEmail
+	}
+	result := make(map[string]string, 0)
+	for _, v := range users {
+		result[v.Id] = v.Email
+	}
+
+	return result, nil
+}

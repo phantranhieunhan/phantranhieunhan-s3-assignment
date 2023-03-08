@@ -35,6 +35,7 @@ func NewConnectFriendshipHandler(repo ConnectFriendshipRepo, userRepo UserRepo, 
 func (h ConnectFriendshipHandler) Handle(ctx context.Context, userEmail, friendEmail string) (string, error) {
 	userIDs, err := h.userRepo.GetUserIDsByEmails(ctx, []string{userEmail, friendEmail})
 	if err != nil {
+		logger.Errorf("userRepo.GetUserIDsByEmails %w", err)
 		if err == domain.ErrNotFoundUserByEmail {
 			return "", common.ErrInvalidRequest(err, "emails")
 		}

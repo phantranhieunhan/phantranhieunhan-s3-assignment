@@ -212,7 +212,7 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 			if tc.err == nil {
 				assert.Equal(t, friendshipId, id)
 			}
-			mock.AssertExpectationsForObjects(t, mockFriendshipRepo, mockTransaction)
+			mock.AssertExpectationsForObjects(t, mockFriendshipRepo, mockUserRepo, mockTransaction)
 		})
 	}
 }
