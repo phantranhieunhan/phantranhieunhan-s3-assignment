@@ -32,8 +32,8 @@ CREATE TABLE public.followers(
 
 INSERT INTO public.users
 (id, username, "password", email, created_at, updated_at)
-VALUES('cd2543cd-6566-4661-a122-2c963fc16b7c', 'andy', 'encrypted-password', 'andy@example', 'now()', 'now()'),
-('b44ca9eb-5d0f-41be-9ecd-dd0158e72e2c', 'john', 'encrypted-password', 'john@example', 'now()', 'now()'),
-('afed6e29-07d1-443a-a0c7-38d77ef8f332', 'lisa', 'encrypted-password', 'lisa@example', 'now()', 'now()'),
-('6bf98bcf-dd9a-4fd8-b43b-b96ea5f5fe7f', 'kate', 'encrypted-password', 'kate@example', 'now()', 'now()'),
-('a46cef8e-ef3d-46e0-9f06-a7bb0d32b310', 'common', 'encrypted-password', 'common@example', 'now()', 'now()')
+VALUES('cd2543cd-6566-4661-a122-2c963fc16b7c', 'andy', 'encrypted-password', 'andy@example.com', 'now()', 'now()'),
+('b44ca9eb-5d0f-41be-9ecd-dd0158e72e2c', 'john', 'encrypted-password', 'john@example.com', 'now()', 'now()'),
+('afed6e29-07d1-443a-a0c7-38d77ef8f332', 'lisa', 'encrypted-password', 'lisa@example.com', 'now()', 'now()'),
+('6bf98bcf-dd9a-4fd8-b43b-b96ea5f5fe7f', 'kate', 'encrypted-password', 'kate@example.com', 'now()', 'now()'),
+('a46cef8e-ef3d-46e0-9f06-a7bb0d32b310', 'common', 'encrypted-password', 'common@example.com', 'now()', 'now()')

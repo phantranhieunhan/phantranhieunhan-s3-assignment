@@ -22,14 +22,15 @@ func NewUserRepository(db postgres.Database) UserRepository {
 
 func (f UserRepository) GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error) {
 	var users model.Users
-	if err := f.Model(ctx).Table(model.User{}.TableName()).Where("email IN ?", emails).First(&users).Error; err != nil {
+	if err := f.Model(ctx).Table(model.User{}.TableName()).Where("email IN ?", emails).Find(&users).Error; err != nil {
+		zResult := make(map[string]string, 0)
 		if err == gorm.ErrRecordNotFound {
-			return nil, domain.ErrRecordNotFound
+			return zResult, domain.ErrRecordNotFound
 		}
-		return nil, common.ErrDB(err)
+		return zResult, common.ErrDB(err)
 	}
 	if len(users) != len(emails) {
-		return nil, common.ErrCannotGetEntity(model.User{}.TableName(), domain.ErrNotFoundUserByEmail)
+		return nil, domain.ErrNotFoundUserByEmail
 	}
 	result := make(map[string]string, 0)
 	for _, v := range users {
