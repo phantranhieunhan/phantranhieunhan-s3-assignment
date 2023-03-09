@@ -2,6 +2,7 @@ package query
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -19,20 +20,18 @@ func TestFriendship_ListFriends(t *testing.T) {
 	mockUserRepo := new(mockRepo.MockUserRepository)
 	h := NewListFriendsHandler(mockFriendshipRepo, mockUserRepo)
 
-	// now := time.Now().UTC()
-
-	emails := []string{"email-1", "email-2", "email-3"}
-	friends := []string{"friend-1", "friend-2", "friend-3"}
+	emails := []string{"email-1", "email-2", "email-3", "email-4"}
+	friends := []string{"friend-1", "friend-2", "friend-3", "friend-4"}
 	mapEmails := map[string]string{
 		emails[0]: friends[0],
 	}
 	mapUsers := map[string]string{
 		friends[1]: emails[1],
 		friends[2]: emails[2],
+		friends[3]: emails[3],
 	}
-	// friendshipId := "friendship-id"
 
-	// errDB := errors.New("some error from db")
+	errDB := errors.New("some error from db")
 
 	tcs := []struct {
 		name   string
@@ -54,11 +53,15 @@ func TestFriendship_ListFriends(t *testing.T) {
 							UserID:   friends[2],
 							FriendID: friends[0],
 						},
+						{
+							UserID:   friends[0],
+							FriendID: friends[3],
+						},
 					}, nil).Once()
-				mockUserRepo.On("GetEmailsByUserIDs", ctx, []string{friends[1], friends[2]}).Once().
+				mockUserRepo.On("GetEmailsByUserIDs", ctx, []string{friends[1], friends[2], friends[3]}).Once().
 					Return(mapUsers, nil)
 			},
-			result: []string{emails[1], emails[2]},
+			result: []string{emails[1], emails[2], emails[3]},
 			err:    nil,
 		},
 		{
@@ -66,11 +69,21 @@ func TestFriendship_ListFriends(t *testing.T) {
 			setup: func(ctx context.Context) {
 				mockUserRepo.On("GetUserIDsByEmails", ctx, []string{emails[0]}).Return(map[string]string{}, domain.ErrNotFoundUserByEmail).Once()
 			},
-			result: []string{},
+			result: nil,
 			err:    common.ErrInvalidRequest(domain.ErrNotFoundUserByEmail, "emails"),
 		},
 		{
-			name: "get list friendship fail because email invalid",
+			name: "get list friendship fail because get friendship by userId and status fail",
+			setup: func(ctx context.Context) {
+				mockUserRepo.On("GetUserIDsByEmails", ctx, []string{emails[0]}).Return(mapEmails, nil).Once()
+				mockFriendshipRepo.On("GetFriendshipByUserIDAndStatus", ctx, friends[0], []domain.FriendshipStatus{domain.FriendshipStatusFriended}).Return(
+					domain.Friendships{}, errDB).Once()
+			},
+			result: nil,
+			err:    common.ErrCannotListEntity(domain.Friendship{}.DomainName(), errDB),
+		},
+		{
+			name: "get list friendship fail because get emails by userIds fail",
 			setup: func(ctx context.Context) {
 				mockUserRepo.On("GetUserIDsByEmails", ctx, []string{emails[0]}).Return(mapEmails, nil).Once()
 				mockFriendshipRepo.On("GetFriendshipByUserIDAndStatus", ctx, friends[0], []domain.FriendshipStatus{domain.FriendshipStatusFriended}).Return(
@@ -85,10 +98,10 @@ func TestFriendship_ListFriends(t *testing.T) {
 						},
 					}, nil).Once()
 				mockUserRepo.On("GetEmailsByUserIDs", ctx, []string{friends[1], friends[2]}).Once().
-					Return(mapUsers, nil)
+					Return(map[string]string{}, errDB)
 			},
-			result: []string{emails[1], emails[2]},
-			err:    nil,
+			result: nil,
+			err:    common.ErrCannotGetEntity(domain.User{}.DomainName(), errDB),
 		},
 	}
 
@@ -100,9 +113,8 @@ func TestFriendship_ListFriends(t *testing.T) {
 
 			ids, err := h.Handle(ctx, emails[0])
 			assert.Equal(t, err, tc.err)
-			if tc.err == nil {
-				assert.Equal(t, tc.result, ids)
-			}
+			assert.Equal(t, tc.result, ids)
+
 			mock.AssertExpectationsForObjects(t, mockFriendshipRepo, mockUserRepo)
 		})
 	}

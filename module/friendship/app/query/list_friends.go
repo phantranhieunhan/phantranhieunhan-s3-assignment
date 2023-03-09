@@ -45,6 +45,7 @@ func (h ListFriendsHandler) Handle(ctx context.Context, email string) ([]string,
 	// get list friends from userId
 	friends, err := h.repo.GetFriendshipByUserIDAndStatus(ctx, userIDs[email], domain.FriendshipStatusFriended)
 	if err != nil {
+		logger.Errorf("friendshipRepo.GetFriendshipByUserIDAndStatus %w", err)
 		return zList, common.ErrCannotListEntity(domain.Friendship{}.DomainName(), err)
 	}
 
@@ -61,12 +62,12 @@ func (h ListFriendsHandler) Handle(ctx context.Context, email string) ([]string,
 	// get email from userID
 	friendIDs, err := h.userRepo.GetEmailsByUserIDs(ctx, r)
 	if err != nil {
-		logger.Errorf("userRepo.GetUserIDsByEmails %w", err)
+		logger.Errorf("userRepo.GetEmailsByUserIDs %w", err)
 		return zList, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
 	}
 
 	result := make([]string, 0, len(friendIDs))
-	for _, v:= range friendIDs{
+	for _, v := range friendIDs {
 		result = append(result, v)
 	}
 
