@@ -62,9 +62,5 @@ func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context
 		return domain.Friendships{}, common.ErrDB(err)
 	}
 
-	if len(m) == 0 {
-		return domain.Friendships{}, domain.ErrRecordNotFound
-	}
-
 	return convert.ToFriendshipsDomain(m), nil
 }

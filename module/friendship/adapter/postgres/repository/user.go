@@ -49,8 +49,8 @@ func (f UserRepository) GetEmailsByUserIDs(ctx context.Context, userIDs []string
 	if err != nil {
 		return zResult, common.ErrDB(err)
 	}
-	l := len(users)
-	if l == 0 || l != len(userIDs) {
+
+	if len(users) != len(userIDs) {
 		return nil, domain.ErrNotFoundUserByEmail
 	}
 
