@@ -1,0 +1,28 @@
+# Directory in which the generated static code is to be kept.
+output = "module/friendship/adapter/postgres/model" 
+
+# Each time new code is generated, completely wipe out the old one.
+wipe = true
+
+# The `go` package name used in the generated code.
+pkgname = "model"
+
+# Adds global variant of the generated functions, more on this later.
+add-global-variants = true
+
+# Generates code for enum types as well.
+add-enum-types = true
+
+[auto-columns]
+    created = "created_at"
+    updated = "updated_at"
+
+# This is the postgres config, which should be self explanatory.
+[psql]
+dbname = "postgres"
+host = "localhost"
+port = 5432
+user = "postgres"
+pass = "changeme"
+sslmode = "disable"
+whitelist = ["users", "friendships", "followers"]

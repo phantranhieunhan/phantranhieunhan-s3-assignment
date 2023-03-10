@@ -2,29 +2,32 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/phantranhieunhan/s3-assignment/common"
 	"github.com/phantranhieunhan/s3-assignment/common/adapter/postgres"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/adapter/postgres/model"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
-	"gorm.io/gorm"
+	"github.com/phantranhieunhan/s3-assignment/pkg/util"
+	. "github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 type UserRepository struct {
-	postgres.Database
+	db postgres.Database
 }
 
 func NewUserRepository(db postgres.Database) UserRepository {
 	return UserRepository{
-		Database: db,
+		db: db,
 	}
 }
 
 func (f UserRepository) GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error) {
-	var users model.Users
-	if err := f.Model(ctx).Table(model.User{}.TableName()).Where("email IN ?", emails).Find(&users).Error; err != nil {
+	users, err := model.Users(AndIn("email IN ?", util.InterfaceSlice(emails)...)).All(ctx, f.db.DB)
+	// users, err := model.Users().All(ctx, f.db.DB)
+	if err != nil {
 		zResult := make(map[string]string, 0)
-		if err == gorm.ErrRecordNotFound {
+		if err == sql.ErrNoRows {
 			return zResult, domain.ErrRecordNotFound
 		}
 		return zResult, common.ErrDB(err)
@@ -34,27 +37,26 @@ func (f UserRepository) GetUserIDsByEmails(ctx context.Context, emails []string)
 	}
 	result := make(map[string]string, 0)
 	for _, v := range users {
-		result[v.Email] = v.Base.Id
+		result[v.Email] = v.ID
 	}
 
 	return result, nil
 }
 
 func (f UserRepository) GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, error) {
-	var users model.Users
-	if err := f.Model(ctx).Table(model.User{}.TableName()).Where("id IN ?", userIDs).Find(&users).Error; err != nil {
-		zResult := make(map[string]string, 0)
-		if err == gorm.ErrRecordNotFound {
-			return zResult, domain.ErrRecordNotFound
-		}
+	users, err := model.Users(AndIn("id IN ?", util.InterfaceSlice(userIDs)...)).All(ctx, f.db.DB)
+	zResult := make(map[string]string, 0)
+	if err != nil {
 		return zResult, common.ErrDB(err)
 	}
-	if len(users) != len(userIDs) {
+	l := len(users)
+	if l == 0 || l != len(userIDs) {
 		return nil, domain.ErrNotFoundUserByEmail
 	}
+
 	result := make(map[string]string, 0)
 	for _, v := range users {
-		result[v.Id] = v.Email
+		result[v.ID] = v.Email
 	}
 
 	return result, nil

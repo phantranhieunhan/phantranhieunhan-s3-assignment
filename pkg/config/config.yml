@@ -1,6 +1,6 @@
 ENV: dev
 
-POSTGRES_URL: postgres://postgres:changeme@localhost:5432/postgres
+POSTGRES_URL: postgres://postgres:changeme@localhost:5432/postgres?sslmode=disable
 
 server:
   PORT: 3001
