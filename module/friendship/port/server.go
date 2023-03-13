@@ -11,9 +11,12 @@ type Server struct {
 
 func NewServer(r *gin.Engine, app app.Application) Server {
 	s := Server{app: app}
-	g := r.Group("friendship")
-	g.POST("connect", s.ConnectFriendship)
-	g.GET("friends", s.ListFriends)
-	g.GET("mutuals", s.ListCommonFriends)
+	friendship := r.Group("friendship")
+	friendship.POST("connect", s.ConnectFriendship)
+	friendship.GET("friends", s.ListFriends)
+	friendship.GET("mutuals", s.ListCommonFriends)
+
+	subscription := r.Group("subscription")
+	subscription.POST("subscribe", s.SubscribeUser)
 	return s
 }

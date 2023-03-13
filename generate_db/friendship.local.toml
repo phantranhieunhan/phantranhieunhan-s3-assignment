@@ -25,4 +25,4 @@ port = 5432
 user = "postgres"
 pass = "changeme"
 sslmode = "disable"
-whitelist = ["users", "friendships", "followers"]
+whitelist = ["users", "friendships", "subscriptions"]

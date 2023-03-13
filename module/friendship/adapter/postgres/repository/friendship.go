@@ -29,7 +29,7 @@ func (f FriendshipRepository) Create(ctx context.Context, d domain.Friendship) (
 	if err := m.Insert(ctx, f.db.DB, boil.Infer()); err != nil {
 		return "", common.ErrDB(err)
 	}
-	return m.FriendID, nil
+	return m.ID, nil
 }
 
 func (f FriendshipRepository) UpdateStatus(ctx context.Context, id string, status domain.FriendshipStatus) error {
@@ -37,7 +37,7 @@ func (f FriendshipRepository) UpdateStatus(ctx context.Context, id string, statu
 		Base:   domain.Base{Id: id},
 		Status: status,
 	})
-	_, err := m.Update(ctx, f.db.DB, boil.Whitelist(model.FollowerColumns.Status, model.FollowerColumns.UpdatedAt))
+	_, err := m.Update(ctx, f.db.DB, boil.Whitelist(model.FriendshipColumns.Status, model.FriendshipColumns.UpdatedAt))
 	if err != nil {
 		return common.ErrDB(err)
 	}

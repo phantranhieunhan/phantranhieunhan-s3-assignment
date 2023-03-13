@@ -18,8 +18,9 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 	t.Parallel()
 	mockFriendshipRepo := new(mockRepo.MockFriendshipRepository)
 	mockUserRepo := new(mockRepo.MockUserRepository)
+	mockSubscriptionRepo := new(mockRepo.MockSubscriptionRepository)
 	mockTransaction := new(mockRepo.MockTransaction)
-	h := NewConnectFriendshipHandler(mockFriendshipRepo, mockUserRepo, mockTransaction)
+	h := NewConnectFriendshipHandler(mockFriendshipRepo, mockUserRepo, mockSubscriptionRepo, mockTransaction)
 
 	now := time.Now().UTC()
 

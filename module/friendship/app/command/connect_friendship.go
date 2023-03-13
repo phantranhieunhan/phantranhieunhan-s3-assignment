@@ -19,16 +19,18 @@ type UserRepo interface {
 }
 
 type ConnectFriendshipHandler struct {
-	friendshipRepo ConnectFriendshipRepo
-	userRepo       UserRepo
-	transactor     Transactor
+	friendshipRepo   ConnectFriendshipRepo
+	userRepo         UserRepo
+	subscriptionRepo SubscribeUserRepo
+	transactor       Transactor
 }
 
-func NewConnectFriendshipHandler(repo ConnectFriendshipRepo, userRepo UserRepo, transactor Transactor) ConnectFriendshipHandler {
+func NewConnectFriendshipHandler(repo ConnectFriendshipRepo, userRepo UserRepo, subRepo SubscribeUserRepo, transactor Transactor) ConnectFriendshipHandler {
 	return ConnectFriendshipHandler{
-		friendshipRepo: repo,
-		userRepo:       userRepo,
-		transactor:     transactor,
+		friendshipRepo:   repo,
+		userRepo:         userRepo,
+		subscriptionRepo: subRepo,
+		transactor:       transactor,
 	}
 }
 
@@ -72,7 +74,10 @@ func (h ConnectFriendshipHandler) Handle(ctx context.Context, userEmail, friendE
 			}
 			id = f.Id
 		}
-		return err
+
+		subHandler := NewSubscribeUserHandler(h.friendshipRepo, h.userRepo, h.subscriptionRepo, h.transactor)
+		subHandler.Handle()
+		return nil
 	})
 
 	return id, err
