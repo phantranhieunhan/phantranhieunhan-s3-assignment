@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/phantranhieunhan/s3-assignment/common"
 	"github.com/phantranhieunhan/s3-assignment/common/logger"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/port/constant"
@@ -27,6 +28,18 @@ func (c ConnectFriendshipReq) validate() error {
 	return nil
 }
 
+// ConnectFriendship godoc
+// @Summary      Connect friendship
+// @Description  create friendship
+// @Tags         friendship
+// @Accept       json
+// @Produce      json
+// @Param        friends   body      []string  true  "Emails"
+// @Success      200  {object}  model.Friendship
+// @Failure      400  {object}  httputil.HTTPError
+// @Failure      404  {object}  httputil.HTTPError
+// @Failure      500  {object}  httputil.HTTPError
+// @Router       /friendship/connect [post]
 func (s *Server) ConnectFriendship(c *gin.Context) {
 	var req ConnectFriendshipReq
 	var err error
