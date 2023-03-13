@@ -13,8 +13,8 @@ type ListFriendsRepo interface {
 }
 
 type UserRepo interface {
-	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error)
-	GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, error)
+	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, []string, error)
+	GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, []string, error)
 }
 
 type ListFriendsHandler struct {
@@ -33,7 +33,7 @@ func (h ListFriendsHandler) Handle(ctx context.Context, email string) ([]string,
 	var zList []string
 
 	// get userId from email to check available
-	userIDs, err := h.userRepo.GetUserIDsByEmails(ctx, []string{email})
+	userIDs, _, err := h.userRepo.GetUserIDsByEmails(ctx, []string{email})
 	if err != nil {
 		logger.Errorf("userRepo.GetUserIDsByEmails %w", err)
 		if err == domain.ErrNotFoundUserByEmail {
@@ -60,16 +60,11 @@ func (h ListFriendsHandler) Handle(ctx context.Context, email string) ([]string,
 	}
 
 	// get email from userID
-	friendIDs, err := h.userRepo.GetEmailsByUserIDs(ctx, r)
+	_, emails, err := h.userRepo.GetEmailsByUserIDs(ctx, r)
 	if err != nil {
 		logger.Errorf("userRepo.GetEmailsByUserIDs %w", err)
 		return zList, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
 	}
 
-	result := make([]string, 0, len(friendIDs))
-	for _, v := range friendIDs {
-		result = append(result, v)
-	}
-
-	return result, nil
+	return emails, nil
 }

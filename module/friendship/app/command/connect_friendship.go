@@ -15,7 +15,7 @@ type ConnectFriendshipRepo interface {
 }
 
 type UserRepo interface {
-	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error)
+	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, []string, error)
 }
 
 type ConnectFriendshipHandler struct {
@@ -33,7 +33,7 @@ func NewConnectFriendshipHandler(repo ConnectFriendshipRepo, userRepo UserRepo, 
 }
 
 func (h ConnectFriendshipHandler) Handle(ctx context.Context, userEmail, friendEmail string) (string, error) {
-	userIDs, err := h.userRepo.GetUserIDsByEmails(ctx, []string{userEmail, friendEmail})
+	userIDs, _, err := h.userRepo.GetUserIDsByEmails(ctx, []string{userEmail, friendEmail})
 	if err != nil {
 		logger.Errorf("userRepo.GetUserIDsByEmails %w", err)
 		if err == domain.ErrNotFoundUserByEmail {

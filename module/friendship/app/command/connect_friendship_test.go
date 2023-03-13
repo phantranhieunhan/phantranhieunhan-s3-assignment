@@ -33,6 +33,8 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 	friendship := domain.Friendship{UserID: friends[0], FriendID: friends[1]}
 
 	errDB := errors.New("some error from db")
+	var mapNil map[string]string = nil
+	var sliceNil []string = nil
 
 	tcs := []struct {
 		name  string
@@ -42,7 +44,7 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 		{
 			name: "connect friendship successfully because have never connected in the past",
 			setup: func(ctx context.Context) {
-				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, nil).Once()
+				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, friends, nil).Once()
 				mockFriendshipRepo.On("GetFriendshipByUserIDs", ctx, friends[0], friends[1]).Return(domain.Friendship{}, domain.ErrRecordNotFound).Once()
 				mockTransaction.On("WithinTransaction", ctx, mock.Anything).Run(func(args mock.Arguments) {
 					f := args[1].(func(ctx context.Context) error)
@@ -56,7 +58,7 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 		{
 			name: "connect friendship successfully because they unfriended in the past",
 			setup: func(ctx context.Context) {
-				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, nil).Once()
+				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, friends, nil).Once()
 				mockFriendshipRepo.On("GetFriendshipByUserIDs", ctx, friends[0], friends[1]).Return(domain.Friendship{
 					Base: domain.Base{
 						Id:        friendshipId,
@@ -79,7 +81,7 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 		{
 			name: "connect friendship fail because their relationship is friended",
 			setup: func(ctx context.Context) {
-				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, nil).Once()
+				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, friends, nil).Once()
 				mockFriendshipRepo.On("GetFriendshipByUserIDs", ctx, friends[0], friends[1]).Return(domain.Friendship{
 					Base: domain.Base{
 						Id:        friendshipId,
@@ -101,14 +103,14 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 		{
 			name: "connect friendship fail because emails invalid",
 			setup: func(ctx context.Context) {
-				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(make(map[string]string, 0), domain.ErrNotFoundUserByEmail).Once()
+				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapNil, sliceNil, domain.ErrNotFoundUserByEmail).Once()
 			},
 			err: common.ErrInvalidRequest(domain.ErrNotFoundUserByEmail, "emails"),
 		},
 		{
 			name: "connect friendship fail because their relationship is blocked",
 			setup: func(ctx context.Context) {
-				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, nil).Once()
+				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, friends, nil).Once()
 				mockFriendshipRepo.On("GetFriendshipByUserIDs", ctx, friends[0], friends[1]).Return(domain.Friendship{
 					Base: domain.Base{
 						Id:        friendshipId,
@@ -130,7 +132,7 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 		{
 			name: "connect friendship fail because their relationship is pending",
 			setup: func(ctx context.Context) {
-				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, nil).Once()
+				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, friends, nil).Once()
 				mockFriendshipRepo.On("GetFriendshipByUserIDs", ctx, friends[0], friends[1]).Return(domain.Friendship{
 					Base: domain.Base{
 						Id:        friendshipId,
@@ -152,7 +154,7 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 		{
 			name: "connect friendship fail because get friendship by user id fail",
 			setup: func(ctx context.Context) {
-				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, nil).Once()
+				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, friends, nil).Once()
 				mockFriendshipRepo.On("GetFriendshipByUserIDs", ctx, friends[0], friends[1]).Return(domain.Friendship{}, errDB).Once()
 				mockTransaction.On("WithinTransaction", ctx, mock.Anything).Run(func(args mock.Arguments) {
 					f := args[1].(func(ctx context.Context) error)
@@ -165,7 +167,7 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 		{
 			name: "connect friendship fail because create friendship fail",
 			setup: func(ctx context.Context) {
-				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, nil).Once()
+				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, friends, nil).Once()
 				mockFriendshipRepo.On("GetFriendshipByUserIDs", ctx, friends[0], friends[1]).Return(domain.Friendship{}, domain.ErrRecordNotFound).Once()
 				mockTransaction.On("WithinTransaction", ctx, mock.Anything).Run(func(args mock.Arguments) {
 					f := args[1].(func(ctx context.Context) error)
@@ -179,7 +181,7 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 		{
 			name: "connect friendship fail because update friendship fail",
 			setup: func(ctx context.Context) {
-				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, nil).Once()
+				mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(mapEmails, friends, nil).Once()
 				mockFriendshipRepo.On("GetFriendshipByUserIDs", ctx, friends[0], friends[1]).Return(domain.Friendship{
 					Base: domain.Base{
 						Id:        friendshipId,

@@ -22,42 +22,44 @@ func NewUserRepository(db postgres.Database) UserRepository {
 	}
 }
 
-func (f UserRepository) GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error) {
+func (f UserRepository) GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, []string, error) {
 	users, err := model.Users(AndIn("email IN ?", util.InterfaceSlice(emails)...)).All(ctx, f.db.DB)
 	// users, err := model.Users().All(ctx, f.db.DB)
 	if err != nil {
-		zResult := make(map[string]string, 0)
 		if err == sql.ErrNoRows {
-			return zResult, domain.ErrRecordNotFound
+			return nil, nil, domain.ErrRecordNotFound
 		}
-		return zResult, common.ErrDB(err)
+		return nil, nil, common.ErrDB(err)
 	}
 	if len(users) != len(emails) {
-		return nil, domain.ErrNotFoundUserByEmail
+		return nil, nil, domain.ErrNotFoundUserByEmail
 	}
 	result := make(map[string]string, 0)
+	sliceString := make([]string, 0, len(users))
 	for _, v := range users {
 		result[v.Email] = v.ID
+		sliceString = append(sliceString, v.ID)
 	}
 
-	return result, nil
+	return result, sliceString, nil
 }
 
-func (f UserRepository) GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, error) {
+func (f UserRepository) GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, []string, error) {
 	users, err := model.Users(AndIn("id IN ?", util.InterfaceSlice(userIDs)...)).All(ctx, f.db.DB)
-	zResult := make(map[string]string, 0)
 	if err != nil {
-		return zResult, common.ErrDB(err)
+		return nil, nil, common.ErrDB(err)
 	}
 
 	if len(users) != len(userIDs) {
-		return nil, domain.ErrNotFoundUserByEmail
+		return nil, nil, domain.ErrNotFoundUserByEmail
 	}
 
 	result := make(map[string]string, 0)
+	emails := make([]string, 0, len(users))
 	for _, v := range users {
 		result[v.ID] = v.Email
+		emails = append(emails, v.Email)
 	}
 
-	return result, nil
+	return result, emails, nil
 }

@@ -25,29 +25,27 @@ func NewListCommonFriendsHandler(repo ListCommonFriendsRepo, userRepo UserRepo) 
 }
 
 func (h ListCommonFriendsHandler) Handle(ctx context.Context, emails []string) ([]string, error) {
-	var zList []string
-
+	emptyList := []string{}
+	if len(emails) != 2 {
+		return emptyList, common.ErrInvalidRequest(domain.ErrEmailIsNotValid, "emails")
+	}
 	// get userId from email to check available
-	mapUserIDs, err := h.userRepo.GetUserIDsByEmails(ctx, emails)
+	mapUserIDs, userIDs, err := h.userRepo.GetUserIDsByEmails(ctx, emails)
 	if err != nil {
 		logger.Errorf("userRepo.GetUserIDsByEmails %w", err)
 		if err == domain.ErrNotFoundUserByEmail {
-			return zList, common.ErrInvalidRequest(err, "emails")
+			return emptyList, common.ErrInvalidRequest(err, "emails")
 		}
-		return zList, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
+		return emptyList, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
 	}
 	f := make([]string, 0)
-	userIDs := make([]string, 0, len(mapUserIDs))
-	for _, e := range emails {
-		userIDs = append(userIDs, mapUserIDs[e])
-	}
 
 	for _, e := range emails {
 		// get list friends from userId
 		friends, err := h.repo.GetFriendshipByUserIDAndStatus(ctx, mapUserIDs[e], domain.FriendshipStatusFriended)
 		if err != nil {
 			logger.Errorf("friendshipRepo.GetFriendshipByUserIDAndStatus %w", err)
-			return zList, common.ErrCannotListEntity(domain.Friendship{}.DomainName(), err)
+			return emptyList, common.ErrCannotListEntity(domain.Friendship{}.DomainName(), err)
 		}
 
 		// get friendIDs from userId or friendId field if not same userID
@@ -59,6 +57,7 @@ func (h ListCommonFriendsHandler) Handle(ctx context.Context, emails []string) (
 				y = v.UserID
 			}
 
+			// remove owner from friends list
 			if !checkBlacklist(userIDs, y) {
 				f = append(f, y)
 			}
@@ -68,18 +67,13 @@ func (h ListCommonFriendsHandler) Handle(ctx context.Context, emails []string) (
 	mutual := getMutual(f)
 
 	// get email from userID
-	friendEmails, err := h.userRepo.GetEmailsByUserIDs(ctx, mutual)
+	_, fEmails, err := h.userRepo.GetEmailsByUserIDs(ctx, mutual)
 	if err != nil {
 		logger.Errorf("userRepo.GetEmailsByUserIDs %w", err)
-		return zList, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
+		return emptyList, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
 	}
 
-	fe := make([]string, 0, len(friendEmails))
-	for _, v := range friendEmails {
-		fe = append(fe, v)
-	}
-
-	return fe, nil
+	return fEmails, nil
 }
 
 func getMutual(fullList []string) []string {
