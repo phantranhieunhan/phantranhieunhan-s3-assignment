@@ -5,6 +5,7 @@ import (
 
 	"github.com/phantranhieunhan/s3-assignment/common"
 	"github.com/phantranhieunhan/s3-assignment/common/logger"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/command"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/port/constant"
 
 	"github.com/gin-gonic/gin"
@@ -38,16 +39,16 @@ func (s *Server) SubscribeUser(c *gin.Context) {
 		panic(err)
 	}
 
-	list, err := s.app.Commands.SubscribeUser.Handle(c.Request.Context(), req.Requestor, req.Target)
+	err = s.app.Commands.SubscribeUser.Handle(c.Request.Context(), command.SubscriberUserPayloads{
+		command.SubscriberUserPayload{
+			Requestor: req.Requestor,
+			Target:    req.Target,
+		},
+	})
 	if err != nil {
 		logger.Error("ListFriends.Handle: ", err)
 		panic(err)
 	}
 
-	c.JSON(http.StatusOK, common.CustomSuccessResponse(
-		map[string]interface{}{
-			"friends": list,
-			"count":   len(list),
-		},
-	))
+	c.JSON(http.StatusOK, common.CustomSuccessResponse(nil))
 }

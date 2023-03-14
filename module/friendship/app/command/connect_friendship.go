@@ -18,19 +18,25 @@ type UserRepo interface {
 	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, []string, error)
 }
 
+type SubscribeUserMQ interface {
+	SubscribeUser(ctx context.Context, ds domain.Subscriptions) error
+}
+
 type ConnectFriendshipHandler struct {
 	friendshipRepo   ConnectFriendshipRepo
 	userRepo         UserRepo
 	subscriptionRepo SubscribeUserRepo
 	transactor       Transactor
+	subscribeUserMQ  SubscribeUserMQ
 }
 
-func NewConnectFriendshipHandler(repo ConnectFriendshipRepo, userRepo UserRepo, subRepo SubscribeUserRepo, transactor Transactor) ConnectFriendshipHandler {
+func NewConnectFriendshipHandler(repo ConnectFriendshipRepo, userRepo UserRepo, subRepo SubscribeUserRepo, transactor Transactor, subMq SubscribeUserMQ) ConnectFriendshipHandler {
 	return ConnectFriendshipHandler{
 		friendshipRepo:   repo,
 		userRepo:         userRepo,
 		subscriptionRepo: subRepo,
 		transactor:       transactor,
+		subscribeUserMQ:  subMq,
 	}
 }
 
@@ -74,11 +80,27 @@ func (h ConnectFriendshipHandler) Handle(ctx context.Context, userEmail, friendE
 			}
 			id = f.Id
 		}
-
-		subHandler := NewSubscribeUserHandler(h.friendshipRepo, h.userRepo, h.subscriptionRepo, h.transactor)
-		subHandler.Handle()
 		return nil
 	})
+
+	if err != nil {
+		return "", err
+	}
+
+	err = h.subscribeUserMQ.SubscribeUser(ctx, domain.Subscriptions{
+		domain.Subscription{
+			UserID:       d.UserID,
+			SubscriberID: d.FriendID,
+		},
+		domain.Subscription{
+			UserID:       d.FriendID,
+			SubscriberID: d.UserID,
+		},
+	})
+	if err != nil {
+		logger.Errorf("Create Subscription fail when create connection friendship HandleWithSubscription: %w", err)
+		return "", err
+	}
 
 	return id, err
 }

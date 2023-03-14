@@ -32,8 +32,19 @@ func (s SubscriptionRepository) Create(ctx context.Context, sub domain.Subscript
 	return m.ID, nil
 }
 
-func (s SubscriptionRepository) GetSubscription(ctx context.Context, ss domain.Subscriptions) (domain.Subscriptions, error) {
+func (f SubscriptionRepository) UpdateStatus(ctx context.Context, id string, status domain.SubscriptionStatus) error {
+	m := model.Subscription{
+		ID:     id,
+		Status: int(status),
+	}
+	_, err := m.Update(ctx, f.db.DB, boil.Whitelist(model.SubscriptionColumns.Status, model.SubscriptionColumns.UpdatedAt))
+	if err != nil {
+		return common.ErrDB(err)
+	}
+	return nil
+}
 
+func (s SubscriptionRepository) GetSubscription(ctx context.Context, ss domain.Subscriptions) (domain.Subscriptions, error) {
 	where := make([]qm.QueryMod, 0)
 	for _, v := range ss {
 		where = append(where, qm.Or("user_id = ? AND subscriber_id = ?", v.UserID, v.SubscriberID))

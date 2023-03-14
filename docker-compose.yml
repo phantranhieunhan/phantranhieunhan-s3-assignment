@@ -16,9 +16,11 @@ services:
     networks: [ "microservices" ]
     restart: always
     environment:
-      - POSTGRES_URL=postgres://postgres:changeme@postgres_container:5432/postgres
+      - POSTGRES_URL=postgres://postgres:changeme@postgres_container:5432/postgres?sslmode=disable
       - PORT=3000
       - ENV=prod
+      - RABBITMQ_URL=amqp://guest:guest@message-broker:5672/
+      - MQ_CONFIG_FILE=pkg/config/mq_config.json
 
   postgres:
     container_name: postgres_container
@@ -51,6 +53,20 @@ services:
     networks:
       - microservices
     restart: unless-stopped
+
+  # Create service with RabbitMQ.
+  message-broker:
+    image: rabbitmq:3-management-alpine
+    container_name: message-broker
+    ports:
+      - 5672:5672   # for sender and consumer connections
+      - 15672:15672 # for serve RabbitMQ GUI
+    volumes:
+      - ${HOME}/dev-rabbitmq/data/:/var/lib/rabbitmq
+      - ${HOME}/dev-rabbitmq/log/:/var/log/rabbitmq
+    restart: always
+    networks:
+      - microservices
 
 networks:
   microservices:

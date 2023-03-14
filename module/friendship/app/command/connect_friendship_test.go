@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/phantranhieunhan/s3-assignment/common"
+	mockMq "github.com/phantranhieunhan/s3-assignment/mock/friendship/mq"
 	mockRepo "github.com/phantranhieunhan/s3-assignment/mock/friendship/repository"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 
@@ -20,7 +21,8 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 	mockUserRepo := new(mockRepo.MockUserRepository)
 	mockSubscriptionRepo := new(mockRepo.MockSubscriptionRepository)
 	mockTransaction := new(mockRepo.MockTransaction)
-	h := NewConnectFriendshipHandler(mockFriendshipRepo, mockUserRepo, mockSubscriptionRepo, mockTransaction)
+	mockSubMQ := new(mockMq.MockSubscriptionMQ)
+	h := NewConnectFriendshipHandler(mockFriendshipRepo, mockUserRepo, mockSubscriptionRepo, mockTransaction, mockSubMQ)
 
 	now := time.Now().UTC()
 
@@ -53,6 +55,10 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 					assert.NoError(t, err)
 				}).Return(nil).Once()
 				mockFriendshipRepo.On("Create", ctx, domain.Friendship{UserID: friends[0], FriendID: friends[1], Status: domain.FriendshipStatusFriended}).Return(friendshipId, nil).Once()
+				mockSubMQ.On("SubscribeUser", ctx, domain.Subscriptions{
+					domain.Subscription{UserID: friends[0], SubscriberID: friends[1]},
+					domain.Subscription{UserID: friends[1], SubscriberID: friends[0]},
+				}).Return(nil).Once()
 			},
 			err: nil,
 		},
@@ -76,6 +82,10 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 					assert.NoError(t, err)
 				}).Return(nil).Once()
 				mockFriendshipRepo.On("UpdateStatus", ctx, friendshipId, domain.FriendshipStatusFriended).Return(nil).Once()
+				mockSubMQ.On("SubscribeUser", ctx, domain.Subscriptions{
+					domain.Subscription{UserID: friends[0], SubscriberID: friends[1]},
+					domain.Subscription{UserID: friends[1], SubscriberID: friends[0]},
+				}).Return(nil).Once()
 			},
 			err: nil,
 		},
@@ -215,7 +225,7 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 			if tc.err == nil {
 				assert.Equal(t, friendshipId, id)
 			}
-			mock.AssertExpectationsForObjects(t, mockFriendshipRepo, mockUserRepo, mockTransaction)
+			mock.AssertExpectationsForObjects(t, mockFriendshipRepo, mockUserRepo, mockTransaction, mockSubMQ)
 		})
 	}
 }

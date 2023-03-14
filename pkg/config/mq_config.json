@@ -1,0 +1,17 @@
+{
+    "exchanges": [
+      "subscription_exchange"
+    ],
+    "queues": [
+      {
+        "name": "subscription_queue",
+        "topics": [
+          {
+            "name": "subscription.created",
+            "exchange": "subscription_exchange"
+          }
+        ]
+      }
+    ]
+  }
+  

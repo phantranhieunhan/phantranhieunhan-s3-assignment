@@ -33,10 +33,10 @@ func (f FriendshipRepository) Create(ctx context.Context, d domain.Friendship) (
 }
 
 func (f FriendshipRepository) UpdateStatus(ctx context.Context, id string, status domain.FriendshipStatus) error {
-	m := convert.ToFriendshipModel(domain.Friendship{
-		Base:   domain.Base{Id: id},
-		Status: status,
-	})
+	m := model.Friendship{
+		ID:     id,
+		Status: int(status),
+	}
 	_, err := m.Update(ctx, f.db.DB, boil.Whitelist(model.FriendshipColumns.Status, model.FriendshipColumns.UpdatedAt))
 	if err != nil {
 		return common.ErrDB(err)

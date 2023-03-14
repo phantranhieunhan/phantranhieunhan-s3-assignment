@@ -19,6 +19,15 @@ func (f FriendshipStatus) CanConnect() bool {
 	}
 }
 
+func (f FriendshipStatus) CanNotSubscribe() bool {
+	switch f {
+	case FriendshipStatusBlocked:
+		return true
+	default:
+		return false
+	}
+}
+
 type Friendship struct {
 	Base     `json:",inline"`
 	UserID   string           `json:"user_id"`
