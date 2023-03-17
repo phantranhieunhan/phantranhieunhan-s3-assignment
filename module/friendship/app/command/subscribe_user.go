@@ -16,13 +16,13 @@ type SubscribeUserRepo interface {
 }
 
 type SubscribeUserHandler struct {
-	friendshipRepo    ConnectFriendshipRepo
+	friendshipRepo    FriendshipRepo
 	userRepo          UserRepo
 	subscribeUserRepo SubscribeUserRepo
 	transactor        Transactor
 }
 
-func NewSubscribeUserHandler(repo ConnectFriendshipRepo, userRepo UserRepo, subscribeUserRepo SubscribeUserRepo, transactor Transactor) SubscribeUserHandler {
+func NewSubscribeUserHandler(repo FriendshipRepo, userRepo UserRepo, subscribeUserRepo SubscribeUserRepo, transactor Transactor) SubscribeUserHandler {
 	return SubscribeUserHandler{
 		friendshipRepo:    repo,
 		userRepo:          userRepo,

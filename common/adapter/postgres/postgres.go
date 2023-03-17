@@ -65,7 +65,7 @@ func extractTx(ctx context.Context) *sql.Tx {
 // The transaction commits when function were finished without error
 func (db Database) WithinTransaction(ctx context.Context, tFunc func(ctx context.Context) error) error {
 	// begin transaction
-	tx, err := db.DB.BeginTx(ctx, &sql.TxOptions{})
+	tx, err := db.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		return common.ErrDB(err)
 	}

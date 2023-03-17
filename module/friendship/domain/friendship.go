@@ -19,6 +19,15 @@ func (f FriendshipStatus) CanConnect() bool {
 	}
 }
 
+func (f FriendshipStatus) CanUnsubscribe() bool {
+	switch f {
+	case FriendshipStatusUnfriended & FriendshipStatusBlocked:
+		return true
+	default:
+		return false
+	}
+}
+
 func (f FriendshipStatus) CanNotSubscribe() bool {
 	switch f {
 	case FriendshipStatusBlocked:
