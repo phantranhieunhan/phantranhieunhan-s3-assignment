@@ -23,7 +23,7 @@ func NewUserRepository(db postgres.Database) UserRepository {
 }
 
 func (f UserRepository) GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, []string, error) {
-	users, err := model.Users(AndIn("email IN ?", util.InterfaceSlice(emails)...)).All(ctx, f.db.DB)
+	users, err := model.Users(AndIn("email IN ?", util.InterfaceSlice(emails)...)).All(ctx, f.db.Model(ctx))
 	// users, err := model.Users().All(ctx, f.db.DB)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -45,7 +45,7 @@ func (f UserRepository) GetUserIDsByEmails(ctx context.Context, emails []string)
 }
 
 func (f UserRepository) GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, []string, error) {
-	users, err := model.Users(AndIn("id IN ?", util.InterfaceSlice(userIDs)...)).All(ctx, f.db.DB)
+	users, err := model.Users(AndIn("id IN ?", util.InterfaceSlice(userIDs)...)).All(ctx, f.db.Model(ctx))
 	if err != nil {
 		return nil, nil, common.ErrDB(err)
 	}
