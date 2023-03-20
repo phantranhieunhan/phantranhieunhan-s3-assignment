@@ -9,7 +9,7 @@ import (
 )
 
 type ListFriends_FriendshipRepo interface {
-	GetFriendshipByUserIDAndStatus(ctx context.Context, userIDs, emails []string, status ...domain.FriendshipStatus) ([]string, error)
+	GetFriendshipByUserIDAndStatus(ctx context.Context, mapEmailUser map[string]string, status ...domain.FriendshipStatus) ([]string, error)
 }
 
 type ListFriends_UserRepo interface {
@@ -33,7 +33,7 @@ func (h ListFriendsHandler) Handle(ctx context.Context, email string) ([]string,
 	var emptyList []string
 
 	// get userId from email to check available
-	userIDs, _, err := h.userRepo.GetUserIDsByEmails(ctx, []string{email})
+	mapEmailUser, err := h.userRepo.GetUserIDsByEmails(ctx, []string{email})
 	if err != nil {
 		logger.Errorf("userRepo.GetUserIDsByEmails %w", err)
 		if err == domain.ErrNotFoundUserByEmail {
@@ -43,7 +43,7 @@ func (h ListFriendsHandler) Handle(ctx context.Context, email string) ([]string,
 	}
 
 	// get list friends from userId
-	result, err := h.repo.GetFriendshipByUserIDAndStatus(ctx, []string{userIDs[email]}, []string{email}, domain.FriendshipStatusFriended)
+	result, err := h.repo.GetFriendshipByUserIDAndStatus(ctx, mapEmailUser, domain.FriendshipStatusFriended)
 	if err != nil {
 		logger.Errorf("friendshipRepo.GetFriendshipByUserIDAndStatus %w", err)
 		return emptyList, common.ErrCannotListEntity(domain.Friendship{}.DomainName(), err)
