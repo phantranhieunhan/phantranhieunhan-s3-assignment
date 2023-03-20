@@ -2,14 +2,14 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/phantranhieunhan/s3-assignment/common"
 	"github.com/phantranhieunhan/s3-assignment/common/adapter/postgres"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/adapter/postgres/convert"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/adapter/postgres/model"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 	"github.com/phantranhieunhan/s3-assignment/pkg/util"
-	. "github.com/volatiletech/sqlboiler/v4/queries/qm"
+	qm "github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 type UserRepository struct {
@@ -22,44 +22,41 @@ func NewUserRepository(db postgres.Database) UserRepository {
 	}
 }
 
-func (f UserRepository) GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, []string, error) {
-	users, err := model.Users(AndIn("email IN ?", util.InterfaceSlice(emails)...)).All(ctx, f.db.Model(ctx))
-	// users, err := model.Users().All(ctx, f.db.DB)
+func (f UserRepository) GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error) {
+	iEmails, err := util.InterfaceSlice(emails)
+	emptyResult := make(map[string]string, 0)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil, domain.ErrRecordNotFound
-		}
-		return nil, nil, common.ErrDB(err)
+		return emptyResult, common.ErrInvalidRequest(err, "userIDs")
+	}
+	users, err := model.Users(qm.AndIn("email IN ?", iEmails...)).All(ctx, f.db.DB)
+	if err != nil {
+		zResult := make(map[string]string, 0)
+		return zResult, common.ErrDB(err)
 	}
 	if len(users) != len(emails) {
 		return nil, nil, domain.ErrNotFoundUserByEmail
 	}
-	result := make(map[string]string, 0)
-	sliceString := make([]string, 0, len(users))
-	for _, v := range users {
-		result[v.Email] = v.ID
-		sliceString = append(sliceString, v.ID)
-	}
+	result := convert.ToMapEmailUserDomainList(users)
 
 	return result, sliceString, nil
 }
 
-func (f UserRepository) GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, []string, error) {
-	users, err := model.Users(AndIn("id IN ?", util.InterfaceSlice(userIDs)...)).All(ctx, f.db.Model(ctx))
+func (f UserRepository) GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string,[]string, error) {
+	iUserIDs, err := util.InterfaceSlice(userIDs)
+	emptyResult := make(map[string]string, 0)
 	if err != nil {
-		return nil, nil, common.ErrDB(err)
+		return emptyResult, common.ErrInvalidRequest(err, "userIDs")
+	}
+	users, err := model.Users(qm.AndIn("id IN ?", iUserIDs...)).All(ctx, f.db.DB)
+
+	if err != nil {
+		return emptyResult, common.ErrDB(err)
 	}
 
 	if len(users) != len(userIDs) {
 		return nil, nil, domain.ErrNotFoundUserByEmail
 	}
-
-	result := make(map[string]string, 0)
-	emails := make([]string, 0, len(users))
-	for _, v := range users {
-		result[v.ID] = v.Email
-		emails = append(emails, v.Email)
-	}
+	result := convert.ToMapUserEmailDomainList(users)
 
 	return result, emails, nil
 }

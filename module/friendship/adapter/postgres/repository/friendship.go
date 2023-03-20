@@ -56,11 +56,62 @@ func (f FriendshipRepository) GetFriendshipByUserIDs(ctx context.Context, userID
 	return convert.ToFriendshipDomain(*(m[0])), nil
 }
 
-func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context, userID string, status ...domain.FriendshipStatus) (domain.Friendships, error) {
-	m, err := model.Friendships(qm.Where("(user_id = ? OR friend_id = ?)", userID, userID), qm.AndIn("status IN ?", util.InterfaceSlice(status)...)).All(ctx, f.db.Model(ctx))
+func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context, userIDs, emails []string, status ...domain.FriendshipStatus) ([]string, error) {
+	type Email struct {
+		UserEmail   string `json:"user_email" boil:"user_email"`
+		FriendEmail string `json:"friend_email" boil:"friend_email"`
+	}
+	var (
+		resultEmails []Email
+		emptyList    = []string{}
+	)
+
+	where := []qm.QueryMod{
+		qm.Select("u1.email as user_email", "u2.email as friend_email"),
+		qm.From("friendships f"),
+		qm.LeftOuterJoin("users u1 on f.user_id = u1.id"),
+		qm.LeftOuterJoin("users u2 on f.friend_id = u2.id"),
+	}
+	for _, userID := range userIDs {
+		where = append(where, qm.Or("(f.user_id = ? OR f.friend_id = ?)", userID, userID))
+	}
+	statusList, err := util.InterfaceSlice(status)
 	if err != nil {
-		return domain.Friendships{}, common.ErrDB(err)
+		return emptyList, err
 	}
 
-	return convert.ToFriendshipsDomain(m), nil
+	where = append(where, qm.AndIn("status IN ?", statusList...))
+
+	err = model.NewQuery(where...).Bind(ctx, f.db.DB, &resultEmails)
+	if err != nil {
+		return emptyList, common.ErrDB(err)
+	}
+
+	if len(resultEmails) == 0 {
+		return emptyList, domain.ErrRecordNotFound
+	}
+
+	result := make([]string, 0)
+	// get friendIDs from userId or friendId field if not same userID
+	for _, v := range resultEmails {
+		var y string
+		if checkBlacklist(emails, v.UserEmail) {
+			y = v.FriendEmail
+		}
+		if checkBlacklist(emails, v.FriendEmail) {
+			y = v.UserEmail
+		}
+		result = append(result, y)
+	}
+
+	return result, nil
+}
+
+func checkBlacklist(blacklist []string, s string) bool {
+	for _, item := range blacklist {
+		if item == s {
+			return true
+		}
+	}
+	return false
 }

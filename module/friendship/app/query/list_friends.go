@@ -8,21 +8,21 @@ import (
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 )
 
-type ListFriendsRepo interface {
-	GetFriendshipByUserIDAndStatus(ctx context.Context, userID string, status ...domain.FriendshipStatus) (domain.Friendships, error)
+type ListFriends_FriendshipRepo interface {
+	GetFriendshipByUserIDAndStatus(ctx context.Context, userIDs, emails []string, status ...domain.FriendshipStatus) ([]string, error)
 }
 
-type UserRepo interface {
-	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, []string, error)
-	GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, []string, error)
+type ListFriends_UserRepo interface {
+	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error)
+	GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, error)
 }
 
 type ListFriendsHandler struct {
-	repo     ListFriendsRepo
-	userRepo UserRepo
+	repo     ListFriends_FriendshipRepo
+	userRepo ListFriends_UserRepo
 }
 
-func NewListFriendsHandler(repo ListFriendsRepo, userRepo UserRepo) ListFriendsHandler {
+func NewListFriendsHandler(repo ListFriends_FriendshipRepo, userRepo ListFriends_UserRepo) ListFriendsHandler {
 	return ListFriendsHandler{
 		repo:     repo,
 		userRepo: userRepo,
@@ -30,41 +30,24 @@ func NewListFriendsHandler(repo ListFriendsRepo, userRepo UserRepo) ListFriendsH
 }
 
 func (h ListFriendsHandler) Handle(ctx context.Context, email string) ([]string, error) {
-	var zList []string
+	var emptyList []string
 
 	// get userId from email to check available
 	userIDs, _, err := h.userRepo.GetUserIDsByEmails(ctx, []string{email})
 	if err != nil {
 		logger.Errorf("userRepo.GetUserIDsByEmails %w", err)
 		if err == domain.ErrNotFoundUserByEmail {
-			return zList, common.ErrInvalidRequest(err, "emails")
+			return emptyList, common.ErrInvalidRequest(err, "emails")
 		}
-		return zList, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
+		return emptyList, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
 	}
 
 	// get list friends from userId
-	friends, err := h.repo.GetFriendshipByUserIDAndStatus(ctx, userIDs[email], domain.FriendshipStatusFriended)
+	result, err := h.repo.GetFriendshipByUserIDAndStatus(ctx, []string{userIDs[email]}, []string{email}, domain.FriendshipStatusFriended)
 	if err != nil {
 		logger.Errorf("friendshipRepo.GetFriendshipByUserIDAndStatus %w", err)
-		return zList, common.ErrCannotListEntity(domain.Friendship{}.DomainName(), err)
+		return emptyList, common.ErrCannotListEntity(domain.Friendship{}.DomainName(), err)
 	}
 
-	// get friendIDs from userId or friendId field if not same userID
-	r := make([]string, 0, len(friends))
-	for _, v := range friends {
-		if v.UserID == userIDs[email] {
-			r = append(r, v.FriendID)
-		} else {
-			r = append(r, v.UserID)
-		}
-	}
-
-	// get email from userID
-	_, emails, err := h.userRepo.GetEmailsByUserIDs(ctx, r)
-	if err != nil {
-		logger.Errorf("userRepo.GetEmailsByUserIDs %w", err)
-		return zList, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
-	}
-
-	return emails, nil
+	return result, nil
 }
