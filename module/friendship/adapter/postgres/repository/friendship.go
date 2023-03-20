@@ -56,7 +56,7 @@ func (f FriendshipRepository) GetFriendshipByUserIDs(ctx context.Context, userID
 	return convert.ToFriendshipDomain(*(m[0])), nil
 }
 
-func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context, userIDs, emails []string, status ...domain.FriendshipStatus) ([]string, error) {
+func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context, mapEmailUser map[string]string, status ...domain.FriendshipStatus) ([]string, error) {
 	type Email struct {
 		UserEmail   string `json:"user_email" boil:"user_email"`
 		FriendEmail string `json:"friend_email" boil:"friend_email"`
@@ -72,6 +72,7 @@ func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context
 		qm.LeftOuterJoin("users u1 on f.user_id = u1.id"),
 		qm.LeftOuterJoin("users u2 on f.friend_id = u2.id"),
 	}
+	userIDs := util.MapValuesToSlice(mapEmailUser)
 	for _, userID := range userIDs {
 		where = append(where, qm.Or("(f.user_id = ? OR f.friend_id = ?)", userID, userID))
 	}
@@ -93,12 +94,13 @@ func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context
 
 	result := make([]string, 0)
 	// get friendIDs from userId or friendId field if not same userID
+	emails := util.MapKeysToSlice(mapEmailUser)
 	for _, v := range resultEmails {
 		var y string
-		if checkBlacklist(emails, v.UserEmail) {
+		if isContain(emails, v.UserEmail) {
 			y = v.FriendEmail
 		}
-		if checkBlacklist(emails, v.FriendEmail) {
+		if isContain(emails, v.FriendEmail) {
 			y = v.UserEmail
 		}
 		result = append(result, y)
@@ -107,8 +109,8 @@ func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context
 	return result, nil
 }
 
-func checkBlacklist(blacklist []string, s string) bool {
-	for _, item := range blacklist {
+func isContain(list []string, s string) bool {
+	for _, item := range list {
 		if item == s {
 			return true
 		}

@@ -26,7 +26,7 @@ func (m *MockFriendshipRepository) GetFriendshipByUserIDs(ctx context.Context, u
 	return args.Get(0).(domain.Friendship), args.Error(1)
 }
 
-func (m *MockFriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context, userIDs, emails []string, status ...domain.FriendshipStatus) ([]string, error) {
-	args := m.Called(ctx, userIDs, emails, status)
+func (m *MockFriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context, mapEmailUser map[string]string, status ...domain.FriendshipStatus) ([]string, error) {
+	args := m.Called(ctx, mapEmailUser, status)
 	return args.Get(0).([]string), args.Error(1)
 }
