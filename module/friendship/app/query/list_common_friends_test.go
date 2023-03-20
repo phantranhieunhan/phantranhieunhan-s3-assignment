@@ -40,11 +40,15 @@ func TestFriendship_ListCommonFriends(t *testing.T) {
 	errDB := errors.New("some error from db")
 
 	tcs := []struct {
-		name            string
-		result          []string
-		requestedEmails []string
-		setup           func(ctx context.Context)
-		err             error
+		name                    string
+		result                  []string
+		requestedEmails         []string
+		setup                   func(ctx context.Context)
+
+		getUserIDsByEmailsData  map[string]string
+		getUserIDsByEmailsError error
+
+		err                     error
 	}{
 		{
 			name: "get list common friendship successfully",
@@ -85,6 +89,7 @@ func TestFriendship_ListCommonFriends(t *testing.T) {
 					Return(mapUsers, emails[2:4], nil)
 			},
 			requestedEmails: requestedEmails,
+			
 			result:          emails[2:4],
 			err:             nil,
 		},
@@ -165,6 +170,8 @@ func TestFriendship_ListCommonFriends(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 			defer cancel()
+			mockUserRepo.On("GetUserIDsByEmails", ctx, requestedEmails).Return(mapEmails, friends[0:2], nil).Once()
+
 			tc.setup(ctx)
 
 			ids, err := h.Handle(ctx, tc.requestedEmails)

@@ -24,39 +24,37 @@ func NewUserRepository(db postgres.Database) UserRepository {
 
 func (f UserRepository) GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error) {
 	iEmails, err := util.InterfaceSlice(emails)
-	emptyResult := make(map[string]string, 0)
 	if err != nil {
-		return emptyResult, common.ErrInvalidRequest(err, "userIDs")
+		return nil, common.ErrInvalidRequest(err, "userIDs")
 	}
-	users, err := model.Users(qm.AndIn("email IN ?", iEmails...)).All(ctx, f.db.DB)
+	users, err := model.Users(qm.AndIn("email IN ?", iEmails...)).All(ctx, f.db.Model(ctx))
 	if err != nil {
-		zResult := make(map[string]string, 0)
-		return zResult, common.ErrDB(err)
+		return nil, common.ErrDB(err)
 	}
 	if len(users) != len(emails) {
-		return nil, nil, domain.ErrNotFoundUserByEmail
+		return nil, domain.ErrNotFoundUserByEmail
 	}
 	result := convert.ToMapEmailUserDomainList(users)
 
-	return result, sliceString, nil
+	return result, nil
 }
 
-func (f UserRepository) GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string,[]string, error) {
+func (f UserRepository) GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, error) {
 	iUserIDs, err := util.InterfaceSlice(userIDs)
 	emptyResult := make(map[string]string, 0)
 	if err != nil {
 		return emptyResult, common.ErrInvalidRequest(err, "userIDs")
 	}
-	users, err := model.Users(qm.AndIn("id IN ?", iUserIDs...)).All(ctx, f.db.DB)
+	users, err := model.Users(qm.AndIn("id IN ?", iUserIDs...)).All(ctx, f.db.Model(ctx))
 
 	if err != nil {
 		return emptyResult, common.ErrDB(err)
 	}
 
 	if len(users) != len(userIDs) {
-		return nil, nil, domain.ErrNotFoundUserByEmail
+		return nil, domain.ErrNotFoundUserByEmail
 	}
 	result := convert.ToMapUserEmailDomainList(users)
 
-	return result, emails, nil
+	return result, nil
 }

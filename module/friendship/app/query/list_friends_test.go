@@ -22,13 +22,13 @@ func TestFriendship_ListFriends(t *testing.T) {
 	mapEmails := map[string]string{
 		emails[0]: friends[0],
 	}
-	mapUsers := map[string]string{
-		friends[1]: emails[1],
-		friends[2]: emails[2],
-		friends[3]: emails[3],
-	}
-	var mapNil map[string]string = nil
-	var sliceNil []string = nil
+	// mapUsers := map[string]string{
+	// 	friends[1]: emails[1],
+	// 	friends[2]: emails[2],
+	// 	friends[3]: emails[3],
+	// }
+	// var mapNil map[string]string = nil
+	// var sliceNil []string = nil
 
 	errDB := errors.New("some error from db")
 

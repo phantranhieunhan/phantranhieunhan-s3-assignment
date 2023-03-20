@@ -30,8 +30,6 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 	friendship := domain.Friendship{UserID: friends[0], FriendID: friends[1]}
 
 	errDB := errors.New("some error from db")
-	var mapNil map[string]string = nil
-	var sliceNil []string = nil
 
 	tcs := []struct {
 		name  string
