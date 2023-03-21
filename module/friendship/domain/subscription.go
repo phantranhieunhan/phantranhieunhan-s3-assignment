@@ -10,6 +10,24 @@ const (
 	SubscriptionStatusUnsubscribed
 )
 
+func (s SubscriptionStatus) AllowSubscribe() bool {
+	switch s {
+	case SubscriptionStatusInvalid, SubscriptionStatusUnsubscribed:
+		return true
+	default:
+		return false
+	}
+}
+
+func (s SubscriptionStatus) IsNoneExisted() bool {
+	switch s {
+	case SubscriptionStatusInvalid:
+		return true
+	default:
+		return false
+	}
+}
+
 var (
 	ErrCannotCreateSubscription = errors.New("cannot create subscription")
 	ErrNeedAtLeastTwoEmails     = errors.New("need at least two emails")

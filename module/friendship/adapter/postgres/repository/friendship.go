@@ -101,22 +101,13 @@ func (f FriendshipRepository) getFriendsOfUsers(entireEmails []view.Email, mapEm
 	emails := util.MapKeysToSlice(mapEmailUser)
 	for _, v := range entireEmails {
 		var y string
-		if isContain(emails, v.UserEmail) {
+		if util.IsContain(emails, v.UserEmail) {
 			y = v.FriendEmail
 		}
-		if isContain(emails, v.FriendEmail) {
+		if util.IsContain(emails, v.FriendEmail) {
 			y = v.UserEmail
 		}
 		result = append(result, y)
 	}
 	return result
-}
-
-func isContain(list []string, s string) bool {
-	for _, item := range list {
-		if item == s {
-			return true
-		}
-	}
-	return false
 }

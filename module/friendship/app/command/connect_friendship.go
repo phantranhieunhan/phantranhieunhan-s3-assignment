@@ -23,19 +23,18 @@ type SubscribeUserMQ interface {
 }
 
 type ConnectFriendshipHandler struct {
-	friendshipRepo   ConnectFriendship_FriendshipRepo
-	userRepo         ConnectFriendship_UserRepo
-	subscriptionRepo SubscribeUserRepo
-	transactor       Transactor
-	subscribeUserMQ  SubscribeUserMQ
+	friendshipRepo  ConnectFriendship_FriendshipRepo
+	userRepo        ConnectFriendship_UserRepo
+	transactor      Transactor
+	subscribeUserMQ SubscribeUserMQ
 }
 
 func NewConnectFriendshipHandler(repo ConnectFriendship_FriendshipRepo, userRepo ConnectFriendship_UserRepo, transactor Transactor, subMq SubscribeUserMQ) ConnectFriendshipHandler {
 	return ConnectFriendshipHandler{
-		friendshipRepo:   repo,
-		userRepo:         userRepo,
-		transactor:       transactor,
-		subscribeUserMQ:  subMq,
+		friendshipRepo:  repo,
+		userRepo:        userRepo,
+		transactor:      transactor,
+		subscribeUserMQ: subMq,
 	}
 }
 
