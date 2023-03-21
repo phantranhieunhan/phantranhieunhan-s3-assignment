@@ -73,7 +73,7 @@ func TestFriendship_ListFriends(t *testing.T) {
 
 			mockUserRepo.On("GetUserIDsByEmails", ctx, []string{emails[0]}).Return(tc.getUserIDsByEmailsData, tc.getUserIDsByEmailsError).Once()
 			if tc.getUserIDsByEmailsError == nil {
-				mockFriendshipRepo.On("GetFriendshipByUserIDAndStatus", ctx, friends[0:1], emails[0:1], []domain.FriendshipStatus{domain.FriendshipStatusFriended}).Return(
+				mockFriendshipRepo.On("GetFriendshipByUserIDAndStatus", ctx, mapEmails, []domain.FriendshipStatus{domain.FriendshipStatusFriended}).Return(
 					tc.getFriendshipByUserIDAndStatusData, tc.getFriendshipByUserIDAndStatusError).Once()
 			}
 

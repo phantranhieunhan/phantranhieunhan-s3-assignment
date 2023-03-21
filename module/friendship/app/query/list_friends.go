@@ -30,23 +30,21 @@ func NewListFriendsHandler(repo ListFriends_FriendshipRepo, userRepo ListFriends
 }
 
 func (h ListFriendsHandler) Handle(ctx context.Context, email string) ([]string, error) {
-	var emptyList []string
-
 	// get userId from email to check available
 	mapEmailUser, err := h.userRepo.GetUserIDsByEmails(ctx, []string{email})
 	if err != nil {
 		logger.Errorf("userRepo.GetUserIDsByEmails %w", err)
 		if err == domain.ErrNotFoundUserByEmail {
-			return emptyList, common.ErrInvalidRequest(err, "emails")
+			return nil, common.ErrInvalidRequest(err, "emails")
 		}
-		return emptyList, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
+		return nil, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
 	}
 
 	// get list friends from userId
 	result, err := h.repo.GetFriendshipByUserIDAndStatus(ctx, mapEmailUser, domain.FriendshipStatusFriended)
 	if err != nil {
 		logger.Errorf("friendshipRepo.GetFriendshipByUserIDAndStatus %w", err)
-		return emptyList, common.ErrCannotListEntity(domain.Friendship{}.DomainName(), err)
+		return nil, common.ErrCannotListEntity(domain.Friendship{}.DomainName(), err)
 	}
 
 	return result, nil
