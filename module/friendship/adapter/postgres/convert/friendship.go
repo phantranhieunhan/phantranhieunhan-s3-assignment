@@ -34,3 +34,19 @@ func ToFriendshipsDomain(m model.FriendshipSlice) domain.Friendships {
 	}
 	return ds
 }
+
+func ToMapUserEmailDomainList(users model.UserSlice) map[string]string {
+	result := make(map[string]string, 0)
+	for _, v := range users {
+		result[v.ID] = v.Email
+	}
+	return result
+}
+
+func ToMapEmailUserDomainList(users model.UserSlice) map[string]string {
+	result := make(map[string]string, 0)
+	for _, v := range users {
+		result[v.Email] = v.ID
+	}
+	return result
+}
