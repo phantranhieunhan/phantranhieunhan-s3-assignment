@@ -7,11 +7,11 @@ import (
 )
 
 type SuccessRes struct {
-	Success bool                   `json:"success"`
-	Data    interface{}            `json:"data,omitempty"`
-	Paging  interface{}            `json:"paging,omitempty"`
-	Filter  interface{}            `json:"filter,omitempty"`
-	Custom  map[string]interface{} `json:"-"`
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data,omitempty"`
+	Paging  interface{} `json:"paging,omitempty"`
+	Filter  interface{} `json:"filter,omitempty"`
+	Custom  interface{} `json:"-"`
 }
 
 func (p SuccessRes) MarshalJSON() ([]byte, error) {
@@ -20,20 +20,26 @@ func (p SuccessRes) MarshalJSON() ([]byte, error) {
 	b, _ := json.Marshal(SuccessRes_(p))
 
 	var m map[string]json.RawMessage
-	_ = json.Unmarshal(b, &m)
+	err := json.Unmarshal(b, &m)
+	if err != nil {
+		return nil, err
+	}
+	if p.Custom != nil {
+		c, err := json.Marshal(p.Custom)
+		if err != nil {
+			return nil, err
+		}
 
-	// Add tags to the map, possibly overriding struct fields
-	for k, v := range p.Custom {
-		// if overriding struct fields is not acceptable:
-		// if _, ok := m[k]; ok { continue }
-		b, _ = json.Marshal(v)
-		m[k] = b
+		err = json.Unmarshal(c, &m)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return json.Marshal(m)
 }
 
-func NewSuccessResponse(data, paging, filter interface{}, custom map[string]interface{}) *SuccessRes {
+func NewSuccessResponse(data, paging, filter interface{}, custom interface{}) *SuccessRes {
 	return &SuccessRes{
 		Success: true,
 		Data:    data,
@@ -47,7 +53,7 @@ func SimpleSuccessResponse(data interface{}) *SuccessRes {
 	return NewSuccessResponse(data, nil, nil, nil)
 }
 
-func CustomSuccessResponse(custom map[string]interface{}) *SuccessRes {
+func CustomSuccessResponse(custom interface{}) *SuccessRes {
 	return NewSuccessResponse(nil, nil, nil, custom)
 }
 

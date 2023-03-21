@@ -17,6 +17,11 @@ func (c ListFriendsReq) validate() error {
 	return common.ValidateRequired(c.Email, "email")
 }
 
+type ListFriendsRes struct {
+	Friends []string `json:"friends"`
+	Count   int      `json:"count"`
+}
+
 func (s *Server) ListFriends(c *gin.Context) {
 	var req ListFriendsReq
 	var err error
@@ -37,9 +42,6 @@ func (s *Server) ListFriends(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, common.CustomSuccessResponse(
-		map[string]interface{}{
-			"friends": list,
-			"count": len(list),
-		},
+		ListFriendsRes{Friends: list, Count: len(list)},
 	))
 }

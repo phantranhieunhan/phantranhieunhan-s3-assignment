@@ -51,14 +51,14 @@ func extractTx(ctx context.Context) *sql.Tx {
 }
 
 // model returns query model with context with or without transaction extracted from context
-// func (db Database) Model(ctx context.Context) boil {
-// 	tx := extractTx(ctx)
-// 	if tx != nil {
-// 		return tx
-// 	}
+func (db Database) Model(ctx context.Context) boil.ContextExecutor {
+	tx := extractTx(ctx)
+	if tx != nil {
+		return tx
+	}
 
-// 	return db.db
-// }
+	return db.DB
+}
 
 // WithinTransaction runs function within transaction
 //
