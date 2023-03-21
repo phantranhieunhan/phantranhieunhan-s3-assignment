@@ -14,6 +14,17 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+type TestCase_Friendship_ListFriends struct {
+	name                    string
+	result                  []string
+	err                     error
+	getUserIDsByEmailsError error
+	getUserIDsByEmailsData  map[string]string
+
+	getFriendshipByUserIDAndStatusError error
+	getFriendshipByUserIDAndStatusData  []string
+}
+
 func TestFriendship_ListFriends(t *testing.T) {
 	t.Parallel()
 
@@ -25,21 +36,9 @@ func TestFriendship_ListFriends(t *testing.T) {
 
 	errDB := errors.New("some error from db")
 
-	tcs := []struct {
-		name                    string
-		result                  []string
-		setup                   func(ctx context.Context)
-		err                     error
-		getUserIDsByEmailsError error
-		getUserIDsByEmailsData  map[string]string
-
-		getFriendshipByUserIDAndStatusError error
-		getFriendshipByUserIDAndStatusData  []string
-	}{
+	tcs := []TestCase_Friendship_ListFriends{
 		{
-			name: "get list friendship successfully",
-			setup: func(ctx context.Context) {
-			},
+			name:                               "get list friendship successfully",
 			getUserIDsByEmailsData:             mapEmails,
 			getFriendshipByUserIDAndStatusData: emails[1:4],
 			result:                             emails[1:4],
