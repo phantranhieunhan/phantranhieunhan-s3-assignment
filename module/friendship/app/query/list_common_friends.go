@@ -32,24 +32,23 @@ func NewListCommonFriendsHandler(repo ListCommonFriends_FriendshipRepo, userRepo
 }
 
 func (h ListCommonFriendsHandler) Handle(ctx context.Context, emails []string) ([]string, error) {
-	emptyList := []string{}
 	if len(emails) != EMAIL_TOTAL {
-		return emptyList, common.ErrInvalidRequest(domain.ErrEmailIsNotValid, "emails")
+		return nil, common.ErrInvalidRequest(domain.ErrEmailIsNotValid, "emails")
 	}
 	// get userId from email to check available
 	mapEmailUserIDs, err := h.userRepo.GetUserIDsByEmails(ctx, emails)
 	if err != nil {
 		logger.Errorf("userRepo.GetUserIDsByEmails %w", err)
 		if err == domain.ErrNotFoundUserByEmail {
-			return emptyList, common.ErrInvalidRequest(err, "emails")
+			return nil, common.ErrInvalidRequest(err, "emails")
 		}
-		return emptyList, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
+		return nil, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
 	}
 
 	friends, err := h.repo.GetFriendshipByUserIDAndStatus(ctx, mapEmailUserIDs, domain.FriendshipStatusFriended)
 	if err != nil {
 		logger.Errorf("friendshipRepo.GetFriendshipByUserIDAndStatus %w", err)
-		return emptyList, common.ErrCannotListEntity(domain.Friendship{}.DomainName(), err)
+		return nil, common.ErrCannotListEntity(domain.Friendship{}.DomainName(), err)
 	}
 
 	mutual := getMutual(friends)
@@ -57,7 +56,7 @@ func (h ListCommonFriendsHandler) Handle(ctx context.Context, emails []string) (
 	return mutual, nil
 }
 
-// get items is duplicated
+// after add all friends of 2 user in to a list, then get items is duplicated
 func getMutual(fullList []string) []string {
 	allKeys := make(map[string]bool)
 	list := []string{}

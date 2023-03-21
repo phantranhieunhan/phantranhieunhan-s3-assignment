@@ -83,7 +83,7 @@ func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context
 
 	where = append(where, qm.AndIn("status IN ?", statusList...))
 
-	err = model.NewQuery(where...).Bind(ctx, f.db.DB, &resultEmails)
+	err = model.NewQuery(where...).Bind(ctx, f.db.Model(ctx), &resultEmails)
 	if err != nil {
 		return emptyList, common.ErrDB(err)
 	}
