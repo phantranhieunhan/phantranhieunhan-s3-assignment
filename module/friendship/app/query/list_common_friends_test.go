@@ -35,7 +35,6 @@ func TestFriendship_ListCommonFriends(t *testing.T) {
 		name            string
 		result          []string
 		requestedEmails []string
-		setup           func(ctx context.Context)
 
 		getUserIDsByEmailsData  map[string]string
 		getUserIDsByEmailsError error

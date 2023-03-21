@@ -7,6 +7,7 @@ import (
 	"github.com/phantranhieunhan/s3-assignment/common/adapter/postgres"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/adapter/postgres/convert"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/adapter/postgres/model"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/adapter/postgres/view"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 	"github.com/phantranhieunhan/s3-assignment/pkg/util"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -57,12 +58,9 @@ func (f FriendshipRepository) GetFriendshipByUserIDs(ctx context.Context, userID
 }
 
 func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context, mapEmailUser map[string]string, status ...domain.FriendshipStatus) ([]string, error) {
-	type Email struct {
-		UserEmail   string `json:"user_email" boil:"user_email"`
-		FriendEmail string `json:"friend_email" boil:"friend_email"`
-	}
+
 	var (
-		resultEmails []Email
+		resultEmails []view.Email
 		emptyList    = []string{}
 	)
 
@@ -92,10 +90,16 @@ func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context
 		return emptyList, domain.ErrRecordNotFound
 	}
 
+	result := f.getFriendsOfUsers(resultEmails, mapEmailUser)
+
+	return result, nil
+}
+
+// get friendIDs from userId or friendId field if not same userID
+func (f FriendshipRepository) getFriendsOfUsers(entireEmails []view.Email, mapEmailUser map[string]string) []string {
 	result := make([]string, 0)
-	// get friendIDs from userId or friendId field if not same userID
 	emails := util.MapKeysToSlice(mapEmailUser)
-	for _, v := range resultEmails {
+	for _, v := range entireEmails {
 		var y string
 		if isContain(emails, v.UserEmail) {
 			y = v.FriendEmail
@@ -105,8 +109,7 @@ func (f FriendshipRepository) GetFriendshipByUserIDAndStatus(ctx context.Context
 		}
 		result = append(result, y)
 	}
-
-	return result, nil
+	return result
 }
 
 func isContain(list []string, s string) bool {
