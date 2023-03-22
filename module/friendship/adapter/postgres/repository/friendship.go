@@ -52,7 +52,7 @@ func (f FriendshipRepository) GetFriendshipByUserIDs(ctx context.Context, userID
 		return domain.Friendship{}, common.ErrDB(err)
 	}
 	if len(m) == 0 {
-		return domain.Friendship{}, domain.ErrRecordNotFound
+		return domain.Friendship{}, nil
 	}
 	return convert.ToFriendshipDomain(*(m[0])), nil
 }
