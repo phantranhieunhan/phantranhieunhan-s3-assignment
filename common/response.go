@@ -1,6 +1,7 @@
 package common
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 )
@@ -10,19 +11,50 @@ type SuccessRes struct {
 	Data    interface{} `json:"data,omitempty"`
 	Paging  interface{} `json:"paging,omitempty"`
 	Filter  interface{} `json:"filter,omitempty"`
+	Custom  interface{} `json:"-"`
 }
 
-func NewSuccessResponse(data, paging, filter interface{}) *SuccessRes {
+func (p SuccessRes) MarshalJSON() ([]byte, error) {
+	// Turn p into a map
+	type SuccessRes_ SuccessRes // prevent recursion
+	b, _ := json.Marshal(SuccessRes_(p))
+
+	var m map[string]json.RawMessage
+	err := json.Unmarshal(b, &m)
+	if err != nil {
+		return nil, err
+	}
+	if p.Custom != nil {
+		c, err := json.Marshal(p.Custom)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal(c, &m)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return json.Marshal(m)
+}
+
+func NewSuccessResponse(data, paging, filter interface{}, custom interface{}) *SuccessRes {
 	return &SuccessRes{
 		Success: true,
 		Data:    data,
 		Paging:  paging,
 		Filter:  filter,
+		Custom:  custom,
 	}
 }
 
 func SimpleSuccessResponse(data interface{}) *SuccessRes {
-	return NewSuccessResponse(data, nil, nil)
+	return NewSuccessResponse(data, nil, nil, nil)
+}
+
+func CustomSuccessResponse(custom interface{}) *SuccessRes {
+	return NewSuccessResponse(nil, nil, nil, custom)
 }
 
 type AppError struct {

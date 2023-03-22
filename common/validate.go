@@ -32,7 +32,7 @@ func ValidateRequired(value interface{}, fieldName string) error {
 	}
 
 	if isErr {
-		ErrInvalidRequest(nil, fieldName)
+		return ErrInvalidRequest(nil, fieldName)
 	}
 	return nil
 }

@@ -1,6 +1,9 @@
 package app
 
-import "github.com/phantranhieunhan/s3-assignment/module/friendship/app/command"
+import (
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/command"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/query"
+)
 
 type Application struct {
 	Commands Commands
@@ -12,5 +15,5 @@ type Commands struct {
 }
 
 type Queries struct {
-	ListFriends command.ListFriendsHandler
+	ListFriends query.ListFriendsHandler
 }
