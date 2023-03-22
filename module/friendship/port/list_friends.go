@@ -27,18 +27,21 @@ func (s *Server) ListFriends(c *gin.Context) {
 	var err error
 	if err = c.ShouldBindJSON(&req); err != nil {
 		logger.Error("ListFriends.ShouldBind: ", err)
-		panic(common.ErrInvalidRequest(err, constant.FRIENDS))
+		common.HttpErrorHandler(c, common.ErrInvalidRequest(err, constant.FRIENDS))
+		return
 	}
 
 	if err = req.validate(); err != nil {
 		logger.Error("ListFriends.Validate: ", err)
-		panic(err)
+		common.HttpErrorHandler(c, err)
+		return
 	}
 
 	list, err := s.app.Queries.ListFriends.Handle(c.Request.Context(), req.Email)
 	if err != nil {
 		logger.Error("ListFriends.Handle: ", err)
-		panic(err)
+		common.HttpErrorHandler(c, err)
+		return
 	}
 
 	c.JSON(http.StatusOK, common.CustomSuccessResponse(
