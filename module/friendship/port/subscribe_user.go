@@ -31,12 +31,14 @@ func (s *Server) SubscribeUser(c *gin.Context) {
 	var err error
 	if err = c.ShouldBindJSON(&req); err != nil {
 		logger.Error("ListCommonFriends.ShouldBind: ", err)
-		panic(common.ErrInvalidRequest(err, "body data"))
+		common.HttpErrorHandler(c, common.ErrInvalidRequest(err, "body data"))
+		return
 	}
 
 	if err = req.validate(); err != nil {
 		logger.Error("ListCommonFriends.Validate: ", err)
-		panic(err)
+		common.HttpErrorHandler(c, err)
+		return
 	}
 
 	err = s.app.Commands.SubscribeUser.Handle(c.Request.Context(), command.SubscriberUserPayloads{
@@ -47,7 +49,8 @@ func (s *Server) SubscribeUser(c *gin.Context) {
 	})
 	if err != nil {
 		logger.Error("ListFriends.Handle: ", err)
-		panic(err)
+		common.HttpErrorHandler(c, err)
+		return
 	}
 
 	c.JSON(http.StatusOK, common.CustomSuccessResponse(nil))
