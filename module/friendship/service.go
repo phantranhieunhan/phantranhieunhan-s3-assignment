@@ -24,6 +24,7 @@ func New(r *gin.Engine, db postgres.Database, rabbitMQ rabbitmq.MQ) {
 		Commands: app.Commands{
 			ConnectFriendship: command.NewConnectFriendshipHandler(friendshipRepo, userRepo, db, subMQ),
 			SubscribeUser:     command.NewSubscribeUserHandler(friendshipRepo, userRepo, subRepo, db),
+			BlockUpdatesUser:  command.NewBlockUpdatesUserHandler(friendshipRepo, userRepo, subRepo, db),
 		},
 		Queries: app.Queries{
 			ListFriends:       query.NewListFriendsHandler(friendshipRepo, userRepo),

@@ -26,7 +26,7 @@ func NewSubscriptionRepository(db postgres.Database) SubscriptionRepository {
 func (s SubscriptionRepository) Create(ctx context.Context, sub domain.Subscription) (string, error) {
 	sub.Id = util.GenUUID()
 	m := convert.ToSubscriptionModel(sub)
-	if err := m.Insert(ctx, s.db.DB, boil.Infer()); err != nil {
+	if err := m.Insert(ctx, s.db.Model(ctx), boil.Infer()); err != nil {
 		return "", common.ErrDB(err)
 	}
 	return m.ID, nil
@@ -37,7 +37,17 @@ func (f SubscriptionRepository) UpdateStatus(ctx context.Context, id string, sta
 		ID:     id,
 		Status: int(status),
 	}
-	_, err := m.Update(ctx, f.db.DB, boil.Whitelist(model.SubscriptionColumns.Status, model.SubscriptionColumns.UpdatedAt))
+	_, err := m.Update(ctx, f.db.Model(ctx), boil.Whitelist(model.SubscriptionColumns.Status, model.SubscriptionColumns.UpdatedAt))
+	if err != nil {
+		return common.ErrDB(err)
+	}
+	return nil
+}
+
+func (f SubscriptionRepository) UnsertUnsubscription(ctx context.Context, sub domain.Subscription) error {
+	m := convert.ToSubscriptionModel(sub)
+	conflictFields := []string{model.SubscriptionColumns.UserID, model.SubscriptionColumns.SubscriberID}
+	err := m.Upsert(ctx, f.db.Model(ctx), true, conflictFields, boil.Whitelist(model.SubscriptionColumns.Status), boil.Infer())
 	if err != nil {
 		return common.ErrDB(err)
 	}
@@ -50,7 +60,7 @@ func (s SubscriptionRepository) GetSubscription(ctx context.Context, ss domain.S
 		where = append(where, qm.Or("user_id = ? AND subscriber_id = ?", v.UserID, v.SubscriberID))
 	}
 
-	m, err := model.Subscriptions(where...).All(ctx, s.db.DB)
+	m, err := model.Subscriptions(where...).All(ctx, s.db.Model(ctx))
 	if err != nil {
 		return domain.Subscriptions{}, common.ErrDB(err)
 	}

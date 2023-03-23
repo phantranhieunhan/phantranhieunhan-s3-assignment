@@ -29,8 +29,9 @@ func (s SubscriptionStatus) IsNoneExisted() bool {
 }
 
 var (
-	ErrCannotCreateSubscription = errors.New("cannot create subscription")
-	ErrNeedAtLeastTwoEmails     = errors.New("need at least two emails")
+	ErrCannotCreateSubscription          = errors.New("cannot create subscription")
+	ErrNeedAtLeastTwoEmails              = errors.New("need at least two emails")
+	ErrCannotBlockUpdatesFromBlockedUser = errors.New("cannot block updates from blocked user")
 )
 
 type Subscription struct {

@@ -189,10 +189,8 @@ func (r *RepoMock_TestFriendship_ConnectFriendship) prepare(ctx context.Context,
 		r.mockFriendshipRepo.On("GetFriendshipByUserIDs", ctx, friends[0], friends[1]).Return(d, tc.getFriendshipByUserIDsError).Once()
 		if tc.getFriendshipByUserIDsError == domain.ErrRecordNotFound {
 			r.mockFriendshipRepo.On("Create", ctx, domain.Friendship{UserID: friends[0], FriendID: friends[1], Status: domain.FriendshipStatusFriended}).Return(friendshipId, tc.createError).Once()
-		} else {
-			if d.Status.CanConnect() {
-				r.mockFriendshipRepo.On("UpdateStatus", ctx, friendshipId, domain.FriendshipStatusFriended).Return(tc.updateError).Once()
-			}
+		} else if d.Status.CanConnect() {
+			r.mockFriendshipRepo.On("UpdateStatus", ctx, friendshipId, domain.FriendshipStatusFriended).Return(tc.updateError).Once()
 		}
 		if tc.withinTransactionError == nil {
 			r.mockSubMQ.On("SubscribeUser", ctx, domain.Subscriptions{
