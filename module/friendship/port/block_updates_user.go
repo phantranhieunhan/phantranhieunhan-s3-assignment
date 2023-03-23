@@ -32,12 +32,14 @@ func (s *Server) BlockUpdatesUser(c *gin.Context) {
 
 	if err = c.ShouldBindJSON(&req); err != nil {
 		logger.Error("ListCommonFriends.ShouldBind: ", err)
-		panic(common.ErrInvalidRequest(err, "body data"))
+		common.HttpErrorHandler(c, common.ErrInvalidRequest(err, "body data"))
+		return
 	}
 
 	if err = req.validate(); err != nil {
 		logger.Error("ListCommonFriends.Validate: ", err)
-		panic(err)
+		common.HttpErrorHandler(c, err)
+		return
 	}
 
 	err = s.app.Commands.BlockUpdatesUser.Handle(c.Request.Context(), command.BlockUpdatesUserPayload{
@@ -46,7 +48,8 @@ func (s *Server) BlockUpdatesUser(c *gin.Context) {
 	})
 	if err != nil {
 		logger.Error("BlockUpdatesUser.Handle: ", err)
-		panic(err)
+		common.HttpErrorHandler(c, err)
+		return
 	}
 
 	c.JSON(http.StatusOK, common.CustomSuccessResponse(nil))
