@@ -29,6 +29,7 @@ func New(r *gin.Engine, db postgres.Database, rabbitMQ rabbitmq.MQ) {
 		Queries: app.Queries{
 			ListFriends:       query.NewListFriendsHandler(friendshipRepo, userRepo),
 			ListCommonFriends: query.NewListCommonFriendsHandler(friendshipRepo, userRepo),
+			ListUpdatesUser:   query.NewListUpdatesUserHandler(subRepo, userRepo),
 		},
 	}
 	consumer := consumer.NewConsumer(rabbitMQ, application)
