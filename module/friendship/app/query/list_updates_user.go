@@ -9,21 +9,12 @@ import (
 	"github.com/phantranhieunhan/s3-assignment/pkg/util"
 )
 
-type ListUpdatesUser_SubscriptionRepo interface {
-	GetSubscriptionEmailsByUserIDAndStatus(ctx context.Context, id string, status domain.SubscriptionStatus) ([]string, error)
-}
-
-type ListUpdatesUser_UserRepo interface {
-	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error)
-	GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, error)
-}
-
 type ListUpdatesUserHandler struct {
-	userRepo         ListUpdatesUser_UserRepo
-	subscriptionRepo ListUpdatesUser_SubscriptionRepo
+	userRepo         domain.UserRepo
+	subscriptionRepo domain.SubscriptionRepo
 }
 
-func NewListUpdatesUserHandler(subscriptionRepo ListUpdatesUser_SubscriptionRepo, userRepo ListFriends_UserRepo) ListUpdatesUserHandler {
+func NewListUpdatesUserHandler(subscriptionRepo domain.SubscriptionRepo, userRepo domain.UserRepo) ListUpdatesUserHandler {
 	return ListUpdatesUserHandler{
 		subscriptionRepo: subscriptionRepo,
 		userRepo:         userRepo,
