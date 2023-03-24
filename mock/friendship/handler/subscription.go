@@ -1,4 +1,4 @@
-package mockmq
+package mockHandler
 
 import (
 	"context"
@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockSubscriptionMQ struct {
+type MockSubscribeUserHandler struct {
 	mock.Mock
 }
 
-func (m *MockSubscriptionMQ) SubscribeUser(ctx context.Context, ds domain.Subscriptions) error {
+func (m *MockSubscribeUserHandler) HandleWithSubscription(ctx context.Context, ds domain.Subscriptions) error {
 	args := m.Called(ctx, ds)
 	return args.Error(0)
 }
