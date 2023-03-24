@@ -19,8 +19,7 @@ type BlockUpdatesUser_UserRepo interface {
 }
 
 type BlockUpdatesUser_SubscriptionRepo interface {
-	GetSubscription(ctx context.Context, ss domain.Subscriptions) (domain.Subscriptions, error)
-	UpdateStatus(ctx context.Context, id string, status domain.SubscriptionStatus) error
+	UnsertSubscription(ctx context.Context, sub domain.Subscription) error
 }
 
 type BlockUpdatesUserPayload struct {
@@ -108,20 +107,10 @@ func (b BlockUpdatesUserHandler) blockUser(ctx context.Context, friendshipID, re
 }
 
 func (b BlockUpdatesUserHandler) unsubscribeUser(ctx context.Context, requestorID, targetID string) error {
-	sub := domain.Subscription{UserID: targetID, SubscriberID: requestorID}
-	var err error
-	subs, err := b.subscriptionRepo.GetSubscription(ctx, domain.Subscriptions{sub})
+	sub := domain.Subscription{UserID: targetID, SubscriberID: requestorID, Status: domain.SubscriptionStatusUnsubscribed}
+	err := b.subscriptionRepo.UnsertSubscription(ctx, sub)
 	if err != nil {
-		return common.ErrCannotGetEntity(sub.DomainName(), err)
-	}
-	if len(subs) != 0 {
-		if subs[0].Status != domain.SubscriptionStatusUnsubscribed {
-			err := b.subscriptionRepo.UpdateStatus(ctx, subs[0].Id, domain.SubscriptionStatusUnsubscribed)
-			if err != nil {
-				logger.Errorf("repo.UpdateStatusBySubscription %w", err)
-				return common.ErrCannotUpdateEntity(domain.Subscription{}.DomainName(), err)
-			}
-		}
+		return common.ErrCannotUpdateEntity(sub.DomainName(), err)
 	}
 
 	return nil

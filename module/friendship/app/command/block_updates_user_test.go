@@ -28,15 +28,12 @@ type TestCase_Friendship_BlockUpdatesUserHandler struct {
 	getFriendshipByUserIDsError error
 	getFriendshipByUserIDsData  domain.Friendship
 
-	getSubscriptionData  domain.Subscriptions
-	getSubscriptionError error
-
 	createError error
 	createData  string
 
 	updateError error
 
-	updateSubscribeError error
+	upsertSubscriptionError error
 }
 
 func TestFriendship_BlockUpdatesUserHandler(t *testing.T) {
@@ -174,7 +171,7 @@ func TestFriendship_BlockUpdatesUserHandler(t *testing.T) {
 			withinTransactionError: common.ErrCannotUpdateEntity(domain.Friendship{}.DomainName(), errDB),
 		},
 		{
-			name:           "block updates user successfully because get subscription failed",
+			name:           "block updates user successfully because upsert subscription failed",
 			err:            common.ErrCannotGetEntity(domain.Subscription{}.DomainName(), errDB),
 			requestorEmail: emails[0],
 			targetEmail:    emails[1],
@@ -188,29 +185,8 @@ func TestFriendship_BlockUpdatesUserHandler(t *testing.T) {
 				FriendID: friends[1],
 				Status:   domain.FriendshipStatusUnfriended,
 			},
-			getSubscriptionError:   errDB,
-			withinTransactionError: common.ErrCannotGetEntity(domain.Subscription{}.DomainName(), errDB),
-		},
-		{
-			name:           "block updates user successfully because update subscription failed",
-			err:            common.ErrCannotUpdateEntity(domain.Subscription{}.DomainName(), errDB),
-			requestorEmail: emails[0],
-			targetEmail:    emails[1],
-
-			getUserIDsByEmailsData: mapEmails,
-			getFriendshipByUserIDsData: domain.Friendship{
-				Base: domain.Base{
-					Id: friendshipId,
-				},
-				UserID:   friends[0],
-				FriendID: friends[1],
-				Status:   domain.FriendshipStatusUnfriended,
-			},
-			getSubscriptionData: domain.Subscriptions{
-				domain.Subscription{Base: domain.Base{Id: "sub-id"}, Status: domain.SubscriptionStatusSubscribed},
-			},
-			updateSubscribeError:   errDB,
-			withinTransactionError: common.ErrCannotUpdateEntity(domain.Subscription{}.DomainName(), errDB),
+			upsertSubscriptionError: errDB,
+			withinTransactionError:  common.ErrCannotGetEntity(domain.Subscription{}.DomainName(), errDB),
 		},
 	}
 
@@ -259,8 +235,8 @@ func (r *RepoMock_TestFriendship_BlockUpdatesUserHandler) prepare(ctx context.Co
 		r.mockFriendshipRepo.On("GetFriendshipByUserIDs", ctx, friends[0], friends[1]).Return(friendship, tc.getFriendshipByUserIDsError).Once()
 
 		if tc.getFriendshipByUserIDsError == domain.ErrRecordNotFound || friendship.Status.CanBlockUser() {
-			hasNotError := r.prepareUnsubscribeMock(ctx, t, tc)
-			if hasNotError {
+			r.prepareUnsubscribeMock(ctx, t, tc)
+			if tc.upsertSubscriptionError == nil {
 				if friendship.Id == "" {
 					r.mockFriendshipRepo.On("Create", ctx, domain.Friendship{
 						UserID: friends[0], FriendID: friends[1], Status: domain.FriendshipStatusBlocked,
@@ -277,18 +253,10 @@ func (r *RepoMock_TestFriendship_BlockUpdatesUserHandler) prepare(ctx context.Co
 
 }
 
-func (r *RepoMock_TestFriendship_BlockUpdatesUserHandler) prepareUnsubscribeMock(ctx context.Context, t *testing.T, tc TestCase_Friendship_BlockUpdatesUserHandler) bool {
+func (r *RepoMock_TestFriendship_BlockUpdatesUserHandler) prepareUnsubscribeMock(ctx context.Context, t *testing.T, tc TestCase_Friendship_BlockUpdatesUserHandler) {
 	friends := []string{"friend-1", "friend-2"}
-	subId := "sub-id"
 
-	r.mockSubscriptionRepo.On("GetSubscription", ctx, domain.Subscriptions{
-		domain.Subscription{UserID: friends[1], SubscriberID: friends[0]},
-	}).Return(tc.getSubscriptionData, tc.getSubscriptionError).Once()
-	if tc.getSubscriptionError == nil && len(tc.getSubscriptionData) != 0 {
-		if tc.getSubscriptionData[0].Status != domain.SubscriptionStatusUnsubscribed {
-			r.mockSubscriptionRepo.On("UpdateStatus", ctx, subId, domain.SubscriptionStatusUnsubscribed).
-				Return(tc.updateSubscribeError).Once()
-		}
-	}
-	return tc.getSubscriptionError == nil && tc.updateSubscribeError == nil
+	r.mockSubscriptionRepo.On("UnsertSubscription", ctx, domain.Subscription{
+		UserID: friends[1], SubscriberID: friends[0], Status: domain.SubscriptionStatusUnsubscribed},
+	).Return(tc.upsertSubscriptionError).Once()
 }
