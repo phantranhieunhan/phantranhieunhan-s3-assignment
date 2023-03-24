@@ -1,5 +1,7 @@
 package domain
 
+import "context"
+
 type User struct {
 	Base     Base   `json:",inline"`
 	Username string `json:"username"`
@@ -9,4 +11,9 @@ type User struct {
 
 func (r User) DomainName() string {
 	return "User"
+}
+
+type UserRepo interface {
+	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error)
+	GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, error)
 }
