@@ -45,10 +45,13 @@ func (f SubscriptionRepository) UpdateStatus(ctx context.Context, id string, sta
 	return nil
 }
 
-func (f SubscriptionRepository) UnsertUnsubscription(ctx context.Context, sub domain.Subscription) error {
+func (f SubscriptionRepository) UnsertSubscription(ctx context.Context, sub domain.Subscription) error {
 	m := convert.ToSubscriptionModel(sub)
+	if m.ID == "" {
+		m.ID = util.GenUUID()
+	}
 	conflictFields := []string{model.SubscriptionColumns.UserID, model.SubscriptionColumns.SubscriberID}
-	err := m.Upsert(ctx, f.db.Model(ctx), true, conflictFields, boil.Whitelist(model.SubscriptionColumns.Status), boil.Infer())
+	err := m.Upsert(ctx, f.db.Model(ctx), true, conflictFields, boil.Whitelist(model.SubscriptionColumns.Status, model.FriendshipColumns.UpdatedAt), boil.Infer())
 	if err != nil {
 		return common.ErrDB(err)
 	}

@@ -17,11 +17,16 @@ func (m *MockSubscriptionRepository) Create(ctx context.Context, d domain.Subscr
 }
 
 func (m *MockSubscriptionRepository) UpdateStatus(ctx context.Context, id string, status domain.SubscriptionStatus) error {
-    args := m.Called(ctx, id, status)
-    return args.Error(0)
+	args := m.Called(ctx, id, status)
+	return args.Error(0)
 }
 
 func (m *MockSubscriptionRepository) GetSubscription(ctx context.Context, ss domain.Subscriptions) (domain.Subscriptions, error) {
-    args := m.Called(ctx, ss)
-    return args.Get(0).(domain.Subscriptions), args.Error(1)
+	args := m.Called(ctx, ss)
+	return args.Get(0).(domain.Subscriptions), args.Error(1)
+}
+
+func (m *MockSubscriptionRepository) UnsertSubscription(ctx context.Context, d domain.Subscription) error {
+	args := m.Called(ctx, d)
+	return args.Error(0)
 }
