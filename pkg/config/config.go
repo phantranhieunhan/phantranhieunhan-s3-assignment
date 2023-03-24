@@ -16,11 +16,6 @@ import (
 	"github.com/phantranhieunhan/s3-assignment/common/constant"
 )
 
-const (
-	SUBSCRIPTION_EXCHANGE      = "subscription_exchange"
-	SUBSCRIPTION_CREATED_TOPIC = "subscription.created"
-)
-
 var configPath string
 
 func init() {
@@ -33,8 +28,6 @@ type config struct {
 	Server      struct {
 		Port string `mapstructure:"PORT"`
 	}
-	RabbitMQURL  string `mapstructure:"RABBITMQ_URL"`
-	MQConfigFile string `mapstructure:"MQ_CONFIG_FILE"`
 }
 
 var C config
@@ -83,16 +76,6 @@ func ReadConfig() error {
 	port := os.Getenv(constant.PORT)
 	if port != "" {
 		C.Server.Port = port
-	}
-
-	rabbitUrl := os.Getenv(constant.RABBITMQ_URL)
-	if port != "" {
-		C.RabbitMQURL = rabbitUrl
-	}
-
-	mqConfigFile := os.Getenv(constant.MQ_CONFIG_FILE)
-	if port != "" {
-		C.MQConfigFile = mqConfigFile
 	}
 
 	spew.Dump(C)
