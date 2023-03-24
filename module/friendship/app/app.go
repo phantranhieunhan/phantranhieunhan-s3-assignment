@@ -15,5 +15,6 @@ type Commands struct {
 }
 
 type Queries struct {
-	ListFriends query.ListFriendsHandler
+	ListFriends       query.ListFriendsHandler
+	ListCommonFriends query.ListCommonFriendsHandler
 }

@@ -14,5 +14,6 @@ func NewServer(r *gin.Engine, app app.Application) Server {
 	g := r.Group("friendship")
 	g.POST("connect", s.ConnectFriendship)
 	g.GET("friends", s.ListFriends)
+	g.GET("mutuals", s.ListCommonFriends)
 	return s
 }

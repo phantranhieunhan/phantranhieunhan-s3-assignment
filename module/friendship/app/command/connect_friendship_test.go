@@ -88,7 +88,6 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 		},
 		{
 			name: "connect friendship fail because their relationship is blocked",
-
 			getUserIDsByEmailsData:     mapEmails,
 			withinTransactionError:     common.ErrInvalidRequest(domain.ErrFriendshipIsUnavailable, ""),
 			getFriendshipByUserIDsData: domain.FriendshipStatusBlocked,
@@ -96,7 +95,6 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 		},
 		{
 			name: "connect friendship fail because their relationship is pending",
-
 			getUserIDsByEmailsData:     mapEmails,
 			withinTransactionError:     common.ErrInvalidRequest(domain.ErrFriendshipIsUnavailable, ""),
 			getFriendshipByUserIDsData: domain.FriendshipStatusPending,

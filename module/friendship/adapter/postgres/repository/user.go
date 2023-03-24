@@ -24,14 +24,12 @@ func NewUserRepository(db postgres.Database) UserRepository {
 
 func (f UserRepository) GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error) {
 	iEmails, err := util.InterfaceSlice(emails)
-	emptyResult := make(map[string]string, 0)
 	if err != nil {
-		return emptyResult, common.ErrInvalidRequest(err, "userIDs")
+		return nil, common.ErrInvalidRequest(err, "userIDs")
 	}
-	users, err := model.Users(qm.AndIn("email IN ?", iEmails...)).All(ctx, f.db.DB)
+	users, err := model.Users(qm.AndIn("email IN ?", iEmails...)).All(ctx, f.db.Model(ctx))
 	if err != nil {
-		zResult := make(map[string]string, 0)
-		return zResult, common.ErrDB(err)
+		return nil, common.ErrDB(err)
 	}
 	if len(users) != len(emails) {
 		return nil, domain.ErrNotFoundUserByEmail
@@ -47,13 +45,13 @@ func (f UserRepository) GetEmailsByUserIDs(ctx context.Context, userIDs []string
 	if err != nil {
 		return emptyResult, common.ErrInvalidRequest(err, "userIDs")
 	}
-	users, err := model.Users(qm.AndIn("id IN ?", iUserIDs...)).All(ctx, f.db.DB)
+	users, err := model.Users(qm.AndIn("id IN ?", iUserIDs...)).All(ctx, f.db.Model(ctx))
 
 	if err != nil {
 		return emptyResult, common.ErrDB(err)
 	}
-	l := len(users)
-	if l == 0 || l != len(userIDs) {
+
+	if len(users) != len(userIDs) {
 		return nil, domain.ErrNotFoundUserByEmail
 	}
 	result := convert.ToMapUserEmailDomainList(users)
