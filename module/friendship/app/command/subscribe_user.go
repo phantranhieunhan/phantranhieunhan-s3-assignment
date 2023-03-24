@@ -12,28 +12,14 @@ import (
 
 const EMAIL_TOTAL = 2
 
-type SubscribeUser_SubscriptionRepo interface {
-	Create(ctx context.Context, sub domain.Subscription) (string, error)
-	GetSubscription(ctx context.Context, ss domain.Subscriptions) (domain.Subscriptions, error)
-	UpdateStatus(ctx context.Context, id string, status domain.SubscriptionStatus) error
-}
-
-type SubscribeUser_FriendshipRepo interface {
-	GetFriendshipByUserIDs(ctx context.Context, userID, friendID string) (domain.Friendship, error)
-}
-
-type SubscribeUser_UserRepo interface {
-	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error)
-}
-
 type SubscribeUserHandler struct {
-	friendshipRepo    SubscribeUser_FriendshipRepo
-	userRepo          SubscribeUser_UserRepo
-	subscribeUserRepo SubscribeUser_SubscriptionRepo
+	friendshipRepo    domain.FriendshipRepo
+	userRepo          domain.UserRepo
+	subscribeUserRepo domain.SubscriptionRepo
 	transactor        Transactor
 }
 
-func NewSubscribeUserHandler(repo SubscribeUser_FriendshipRepo, userRepo SubscribeUser_UserRepo, subscribeUserRepo SubscribeUser_SubscriptionRepo, transactor Transactor) SubscribeUserHandler {
+func NewSubscribeUserHandler(repo domain.FriendshipRepo, userRepo domain.UserRepo, subscribeUserRepo domain.SubscriptionRepo, transactor Transactor) SubscribeUserHandler {
 	return SubscribeUserHandler{
 		friendshipRepo:    repo,
 		userRepo:          userRepo,
