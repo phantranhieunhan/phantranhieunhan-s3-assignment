@@ -8,23 +8,13 @@ import (
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 )
 
-type ConnectFriendship_FriendshipRepo interface {
-	Create(ctx context.Context, d domain.Friendship) (string, error)
-	GetFriendshipByUserIDs(ctx context.Context, userID, friendID string) (domain.Friendship, error)
-	UpdateStatus(ctx context.Context, id string, status domain.FriendshipStatus) error
-}
-
-type ConnectFriendship_UserRepo interface {
-	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error)
-}
-
 type ConnectFriendshipHandler struct {
-	friendshipRepo ConnectFriendship_FriendshipRepo
-	userRepo       ConnectFriendship_UserRepo
+	friendshipRepo domain.FriendshipRepo
+	userRepo       domain.UserRepo
 	transactor     Transactor
 }
 
-func NewConnectFriendshipHandler(repo ConnectFriendship_FriendshipRepo, userRepo ConnectFriendship_UserRepo, transactor Transactor) ConnectFriendshipHandler {
+func NewConnectFriendshipHandler(repo domain.FriendshipRepo, userRepo domain.UserRepo, transactor Transactor) ConnectFriendshipHandler {
 	return ConnectFriendshipHandler{
 		friendshipRepo: repo,
 		userRepo:       userRepo,
