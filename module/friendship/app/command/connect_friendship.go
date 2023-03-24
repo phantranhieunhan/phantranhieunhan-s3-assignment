@@ -18,23 +18,23 @@ type ConnectFriendship_UserRepo interface {
 	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error)
 }
 
-type SubscribeUserMQ interface {
-	SubscribeUser(ctx context.Context, ds domain.Subscriptions) error
+type SubscribeUserCommand interface {
+	HandleWithSubscription(ctx context.Context, ds domain.Subscriptions) error
 }
 
 type ConnectFriendshipHandler struct {
-	friendshipRepo  ConnectFriendship_FriendshipRepo
-	userRepo        ConnectFriendship_UserRepo
-	transactor      Transactor
-	subscribeUserMQ SubscribeUserMQ
+	friendshipRepo       ConnectFriendship_FriendshipRepo
+	userRepo             ConnectFriendship_UserRepo
+	transactor           Transactor
+	subscribeUserCommand SubscribeUserCommand
 }
 
-func NewConnectFriendshipHandler(repo ConnectFriendship_FriendshipRepo, userRepo ConnectFriendship_UserRepo, transactor Transactor, subMq SubscribeUserMQ) ConnectFriendshipHandler {
+func NewConnectFriendshipHandler(repo ConnectFriendship_FriendshipRepo, userRepo ConnectFriendship_UserRepo, transactor Transactor, subscribeUserService SubscribeUserCommand) ConnectFriendshipHandler {
 	return ConnectFriendshipHandler{
-		friendshipRepo:  repo,
-		userRepo:        userRepo,
-		transactor:      transactor,
-		subscribeUserMQ: subMq,
+		friendshipRepo:       repo,
+		userRepo:             userRepo,
+		transactor:           transactor,
+		subscribeUserCommand: subscribeUserService,
 	}
 }
 
@@ -85,7 +85,7 @@ func (h ConnectFriendshipHandler) Handle(ctx context.Context, userEmail, friendE
 		return "", err
 	}
 
-	err = h.subscribeUserMQ.SubscribeUser(ctx, domain.Subscriptions{
+	err = h.subscribeUserCommand.HandleWithSubscription(ctx, domain.Subscriptions{
 		domain.Subscription{
 			UserID:       d.UserID,
 			SubscriberID: d.FriendID,
