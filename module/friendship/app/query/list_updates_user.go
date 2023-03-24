@@ -33,6 +33,7 @@ func NewListUpdatesUserHandler(subscriptionRepo ListUpdatesUser_SubscriptionRepo
 func (h ListUpdatesUserHandler) Handle(ctx context.Context, email, text string) ([]string, error) {
 	emailFromTexts := util.GetEmailsFromString(text)
 	emails := append(emailFromTexts, email)
+	emails = util.RemoveDuplicates(emails)
 
 	// get userId from email to check available
 	mapEmailUser, err := h.userRepo.GetUserIDsByEmails(ctx, emails)
@@ -48,12 +49,32 @@ func (h ListUpdatesUserHandler) Handle(ctx context.Context, email, text string) 
 		return []string{}, common.ErrInvalidRequest(nil, "email")
 	}
 	// get list subscription from userId
-	result, err := h.subscriptionRepo.GetSubscriptionEmailsByUserIDAndStatus(ctx, userID, domain.SubscriptionStatusSubscribed)
+	subs, err := h.subscriptionRepo.GetSubscriptionEmailsByUserIDAndStatus(ctx, userID, domain.SubscriptionStatusSubscribed)
 	if err != nil {
-		logger.Errorf("subscriptionRepo.GetFriendshipByUserIDAndStatus %w", err)
+		logger.Errorf("subscriptionRepo.GetSubscriptionEmailsByUserIDAndStatus %w", err)
 		return []string{}, common.ErrCannotListEntity(domain.Subscription{}.DomainName(), err)
 	}
-	result = append(result, emailFromTexts...)
+
+	subs = append(subs, emailFromTexts...)
+	subs = util.RemoveDuplicates(subs)
+
+	result := subs
+	if len(emailFromTexts) > 0 {
+		blockSubs, err := h.subscriptionRepo.GetSubscriptionEmailsByUserIDAndStatus(ctx, userID, domain.SubscriptionStatusUnsubscribed)
+		if err != nil {
+			logger.Errorf("subscriptionRepo.GetSubscriptionEmailsByUserIDAndStatus %w", err)
+			return []string{}, common.ErrCannotListEntity(domain.Subscription{}.DomainName(), err)
+		}
+
+		if len(blockSubs) > 0 {
+			result = make([]string, 0)
+			for _, r := range subs {
+				if !util.IsContain(blockSubs, r) {
+					result = append(result, r)
+				}
+			}
+		}
+	}
 
 	return result, nil
 }
