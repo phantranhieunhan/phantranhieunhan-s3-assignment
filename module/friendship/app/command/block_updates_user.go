@@ -8,33 +8,19 @@ import (
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 )
 
-type BlockUpdatesUser_FriendshipRepo interface {
-	GetFriendshipByUserIDs(ctx context.Context, userID, friendID string) (domain.Friendship, error)
-	UpdateStatus(ctx context.Context, id string, status domain.FriendshipStatus) error
-	Create(ctx context.Context, d domain.Friendship) (string, error)
-}
-
-type BlockUpdatesUser_UserRepo interface {
-	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error)
-}
-
-type BlockUpdatesUser_SubscriptionRepo interface {
-	UnsertSubscription(ctx context.Context, sub domain.Subscription) error
-}
-
 type BlockUpdatesUserPayload struct {
 	Requestor string
 	Target    string
 }
 
 type BlockUpdatesUserHandler struct {
-	friendshipRepo   BlockUpdatesUser_FriendshipRepo
-	userRepo         BlockUpdatesUser_UserRepo
-	subscriptionRepo BlockUpdatesUser_SubscriptionRepo
+	friendshipRepo   domain.FriendshipRepo
+	userRepo         domain.UserRepo
+	subscriptionRepo domain.SubscriptionRepo
 	transactor       Transactor
 }
 
-func NewBlockUpdatesUserHandler(repo ConnectFriendship_FriendshipRepo, userRepo ConnectFriendship_UserRepo, subRepo BlockUpdatesUser_SubscriptionRepo, transactor Transactor) BlockUpdatesUserHandler {
+func NewBlockUpdatesUserHandler(repo domain.FriendshipRepo, userRepo domain.UserRepo, subRepo domain.SubscriptionRepo, transactor Transactor) BlockUpdatesUserHandler {
 	return BlockUpdatesUserHandler{
 		friendshipRepo:   repo,
 		userRepo:         userRepo,
