@@ -8,40 +8,24 @@ import (
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 )
 
-type FriendshipRepo interface {
-	Create(ctx context.Context, d domain.Friendship) (string, error)
-	GetFriendshipByUserIDs(ctx context.Context, userID, friendID string) (domain.Friendship, error)
-	UpdateStatus(ctx context.Context, id string, status domain.FriendshipStatus) error
-}
-
-type UserRepo interface {
-	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, []string, error)
-}
-
-type SubscribeUserMQ interface {
-	SubscribeUser(ctx context.Context, ds domain.Subscriptions) error
-}
-
 type ConnectFriendshipHandler struct {
-	friendshipRepo   FriendshipRepo
-	userRepo         UserRepo
-	subscriptionRepo SubscribeUserRepo
-	transactor       Transactor
-	subscribeUserMQ  SubscribeUserMQ
+	friendshipRepo       domain.FriendshipRepo
+	userRepo             domain.UserRepo
+	transactor           Transactor
+	subscribeUserCommand domain.SubscribeUserCommand
 }
 
-func NewConnectFriendshipHandler(repo FriendshipRepo, userRepo UserRepo, subRepo SubscribeUserRepo, transactor Transactor, subMq SubscribeUserMQ) ConnectFriendshipHandler {
+func NewConnectFriendshipHandler(repo domain.FriendshipRepo, userRepo domain.UserRepo, transactor Transactor, subscribeUser domain.SubscribeUserCommand) ConnectFriendshipHandler {
 	return ConnectFriendshipHandler{
-		friendshipRepo:   repo,
-		userRepo:         userRepo,
-		subscriptionRepo: subRepo,
-		transactor:       transactor,
-		subscribeUserMQ:  subMq,
+		friendshipRepo:       repo,
+		userRepo:             userRepo,
+		transactor:           transactor,
+		subscribeUserCommand: subscribeUser,
 	}
 }
 
 func (h ConnectFriendshipHandler) Handle(ctx context.Context, userEmail, friendEmail string) (string, error) {
-	userIDs, _, err := h.userRepo.GetUserIDsByEmails(ctx, []string{userEmail, friendEmail})
+	userIDs, err := h.userRepo.GetUserIDsByEmails(ctx, []string{userEmail, friendEmail})
 	if err != nil {
 		logger.Errorf("userRepo.GetUserIDsByEmails %w", err)
 		if err == domain.ErrNotFoundUserByEmail {
@@ -87,7 +71,7 @@ func (h ConnectFriendshipHandler) Handle(ctx context.Context, userEmail, friendE
 		return "", err
 	}
 
-	err = h.subscribeUserMQ.SubscribeUser(ctx, domain.Subscriptions{
+	err = h.subscribeUserCommand.HandleWithSubscription(ctx, domain.Subscriptions{
 		domain.Subscription{
 			UserID:       d.UserID,
 			SubscriberID: d.FriendID,

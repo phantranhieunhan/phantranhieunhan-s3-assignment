@@ -23,11 +23,12 @@ CREATE TABLE public.friendships(
 CREATE TABLE public.subscriptions(
 	id text not null,
 	user_id text not null,
-	subscriber text not null,
+	subscriber_id text not null,
 	status int not null default 0,
 	created_at timestamp with time zone not null,
     updated_at timestamp with time zone not null,
-    CONSTRAINT subscription_pk PRIMARY KEY (id)
+    CONSTRAINT subscription_pk PRIMARY KEY (id),
+    CONSTRAINT user_subscriber_unique UNIQUE (user_id, subscriber_id)
 );
 
 INSERT INTO public.users

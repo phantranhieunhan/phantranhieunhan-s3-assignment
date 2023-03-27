@@ -1,6 +1,9 @@
 package domain
 
-import "errors"
+import (
+	"context"
+	"errors"
+)
 
 type SubscriptionStatus int
 
@@ -10,9 +13,28 @@ const (
 	SubscriptionStatusUnsubscribed
 )
 
+func (s SubscriptionStatus) AllowSubscribe() bool {
+	switch s {
+	case SubscriptionStatusInvalid, SubscriptionStatusUnsubscribed:
+		return true
+	default:
+		return false
+	}
+}
+
+func (s SubscriptionStatus) IsNoneExisted() bool {
+	switch s {
+	case SubscriptionStatusInvalid:
+		return true
+	default:
+		return false
+	}
+}
+
 var (
-	ErrCannotCreateSubscription = errors.New("cannot create subscription")
-	ErrNeedAtLeastTwoEmails     = errors.New("need at least two emails")
+	ErrCannotCreateSubscription          = errors.New("cannot create subscription")
+	ErrNeedAtLeastTwoEmails              = errors.New("need at least two emails")
+	ErrCannotBlockUpdatesFromBlockedUser = errors.New("cannot block updates from blocked user")
 )
 
 type Subscription struct {
@@ -31,3 +53,14 @@ func (r Subscription) GetMapKey() string {
 }
 
 type Subscriptions []Subscription
+
+type SubscribeUserCommand interface {
+	HandleWithSubscription(ctx context.Context, ds Subscriptions) error
+}
+
+type SubscriptionRepo interface {
+	Create(ctx context.Context, sub Subscription) (string, error)
+	GetSubscription(ctx context.Context, ss Subscriptions) (Subscriptions, error)
+	UpdateStatus(ctx context.Context, id string, status SubscriptionStatus) error
+	UnsertSubscription(ctx context.Context, sub Subscription) error
+}

@@ -32,18 +32,21 @@ func (s *Server) ConnectFriendship(c *gin.Context) {
 	var err error
 	if err = c.ShouldBind(&req); err != nil {
 		logger.Error("ConnectFriendship.ShouldBind: ", err)
-		panic(common.ErrInvalidRequest(err, constant.FRIENDS))
+		common.HttpErrorHandler(c, common.ErrInvalidRequest(err, constant.FRIENDS))
+		return
 	}
 
 	if err = req.validate(); err != nil {
 		logger.Error("ConnectFriendship.Validate: ", err)
-		panic(err)
+		common.HttpErrorHandler(c, err)
+		return
 	}
 
 	_, err = s.app.Commands.ConnectFriendship.Handle(c.Request.Context(), req.Friends[0], req.Friends[1])
 	if err != nil {
 		logger.Error("ConnectFriendship.Handle: ", err)
-		panic(err)
+		common.HttpErrorHandler(c, err)
+		return
 	}
 
 	c.JSON(http.StatusOK, common.SimpleSuccessResponse(nil))

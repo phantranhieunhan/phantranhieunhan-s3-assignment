@@ -11,12 +11,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type SubscribeUserReq struct {
+type BlockUpdatesUserReq struct {
 	Requestor string `json:"requestor"`
 	Target    string `json:"target"`
 }
 
-func (l SubscribeUserReq) validate() error {
+func (l BlockUpdatesUserReq) validate() error {
 	if err := common.ValidateRequired(l.Requestor, constant.REQUESTOR); err != nil {
 		return err
 	}
@@ -26,9 +26,10 @@ func (l SubscribeUserReq) validate() error {
 	return nil
 }
 
-func (s *Server) SubscribeUser(c *gin.Context) {
-	var req SubscribeUserReq
+func (s *Server) BlockUpdatesUser(c *gin.Context) {
+	var req BlockUpdatesUserReq
 	var err error
+
 	if err = c.ShouldBindJSON(&req); err != nil {
 		logger.Error("ListCommonFriends.ShouldBind: ", err)
 		common.HttpErrorHandler(c, common.ErrInvalidRequest(err, "body data"))
@@ -41,14 +42,12 @@ func (s *Server) SubscribeUser(c *gin.Context) {
 		return
 	}
 
-	err = s.app.Commands.SubscribeUser.Handle(c.Request.Context(), command.SubscriberUserPayloads{
-		command.SubscriberUserPayload{
-			Requestor: req.Requestor,
-			Target:    req.Target,
-		},
+	err = s.app.Commands.BlockUpdatesUser.Handle(c.Request.Context(), command.BlockUpdatesUserPayload{
+		Requestor: req.Requestor,
+		Target:    req.Target,
 	})
 	if err != nil {
-		logger.Error("ListFriends.Handle: ", err)
+		logger.Error("BlockUpdatesUser.Handle: ", err)
 		common.HttpErrorHandler(c, err)
 		return
 	}
