@@ -65,7 +65,7 @@ func (db Database) Model(ctx context.Context) boil.ContextExecutor {
 // The transaction commits when function were finished without error
 func (db Database) WithinTransaction(ctx context.Context, tFunc func(ctx context.Context) error) error {
 	// begin transaction
-	tx, err := db.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	tx, err := db.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return common.ErrDB(err)
 	}
