@@ -153,15 +153,36 @@ var FriendshipWhere = struct {
 
 // FriendshipRels is where relationship names are stored.
 var FriendshipRels = struct {
-}{}
+	Friend string
+	User   string
+}{
+	Friend: "Friend",
+	User:   "User",
+}
 
 // friendshipR is where relationships are stored.
 type friendshipR struct {
+	Friend *User `boil:"Friend" json:"Friend" toml:"Friend" yaml:"Friend"`
+	User   *User `boil:"User" json:"User" toml:"User" yaml:"User"`
 }
 
 // NewStruct creates a new relationship struct
 func (*friendshipR) NewStruct() *friendshipR {
 	return &friendshipR{}
+}
+
+func (r *friendshipR) GetFriend() *User {
+	if r == nil {
+		return nil
+	}
+	return r.Friend
+}
+
+func (r *friendshipR) GetUser() *User {
+	if r == nil {
+		return nil
+	}
+	return r.User
 }
 
 // friendshipL is where Load methods for each relationship are stored.
@@ -471,6 +492,378 @@ func (q friendshipQuery) Exists(ctx context.Context, exec boil.ContextExecutor) 
 	}
 
 	return count > 0, nil
+}
+
+// Friend pointed to by the foreign key.
+func (o *Friendship) Friend(mods ...qm.QueryMod) userQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.FriendID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return Users(queryMods...)
+}
+
+// User pointed to by the foreign key.
+func (o *Friendship) User(mods ...qm.QueryMod) userQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.UserID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return Users(queryMods...)
+}
+
+// LoadFriend allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (friendshipL) LoadFriend(ctx context.Context, e boil.ContextExecutor, singular bool, maybeFriendship interface{}, mods queries.Applicator) error {
+	var slice []*Friendship
+	var object *Friendship
+
+	if singular {
+		var ok bool
+		object, ok = maybeFriendship.(*Friendship)
+		if !ok {
+			object = new(Friendship)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeFriendship)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeFriendship))
+			}
+		}
+	} else {
+		s, ok := maybeFriendship.(*[]*Friendship)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeFriendship)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeFriendship))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &friendshipR{}
+		}
+		args = append(args, object.FriendID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &friendshipR{}
+			}
+
+			for _, a := range args {
+				if a == obj.FriendID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.FriendID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`users`),
+		qm.WhereIn(`users.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load User")
+	}
+
+	var resultSlice []*User
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice User")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for users")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
+	}
+
+	if len(userAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Friend = foreign
+		if foreign.R == nil {
+			foreign.R = &userR{}
+		}
+		foreign.R.FriendFriendships = append(foreign.R.FriendFriendships, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.FriendID == foreign.ID {
+				local.R.Friend = foreign
+				if foreign.R == nil {
+					foreign.R = &userR{}
+				}
+				foreign.R.FriendFriendships = append(foreign.R.FriendFriendships, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadUser allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (friendshipL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular bool, maybeFriendship interface{}, mods queries.Applicator) error {
+	var slice []*Friendship
+	var object *Friendship
+
+	if singular {
+		var ok bool
+		object, ok = maybeFriendship.(*Friendship)
+		if !ok {
+			object = new(Friendship)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeFriendship)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeFriendship))
+			}
+		}
+	} else {
+		s, ok := maybeFriendship.(*[]*Friendship)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeFriendship)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeFriendship))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &friendshipR{}
+		}
+		args = append(args, object.UserID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &friendshipR{}
+			}
+
+			for _, a := range args {
+				if a == obj.UserID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.UserID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`users`),
+		qm.WhereIn(`users.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load User")
+	}
+
+	var resultSlice []*User
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice User")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for users")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
+	}
+
+	if len(userAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.User = foreign
+		if foreign.R == nil {
+			foreign.R = &userR{}
+		}
+		foreign.R.Friendships = append(foreign.R.Friendships, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.UserID == foreign.ID {
+				local.R.User = foreign
+				if foreign.R == nil {
+					foreign.R = &userR{}
+				}
+				foreign.R.Friendships = append(foreign.R.Friendships, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// SetFriendG of the friendship to the related item.
+// Sets o.R.Friend to related.
+// Adds o to related.R.FriendFriendships.
+// Uses the global database handle.
+func (o *Friendship) SetFriendG(ctx context.Context, insert bool, related *User) error {
+	return o.SetFriend(ctx, boil.GetContextDB(), insert, related)
+}
+
+// SetFriend of the friendship to the related item.
+// Sets o.R.Friend to related.
+// Adds o to related.R.FriendFriendships.
+func (o *Friendship) SetFriend(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"friendships\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"friend_id"}),
+		strmangle.WhereClause("\"", "\"", 2, friendshipPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.FriendID = related.ID
+	if o.R == nil {
+		o.R = &friendshipR{
+			Friend: related,
+		}
+	} else {
+		o.R.Friend = related
+	}
+
+	if related.R == nil {
+		related.R = &userR{
+			FriendFriendships: FriendshipSlice{o},
+		}
+	} else {
+		related.R.FriendFriendships = append(related.R.FriendFriendships, o)
+	}
+
+	return nil
+}
+
+// SetUserG of the friendship to the related item.
+// Sets o.R.User to related.
+// Adds o to related.R.Friendships.
+// Uses the global database handle.
+func (o *Friendship) SetUserG(ctx context.Context, insert bool, related *User) error {
+	return o.SetUser(ctx, boil.GetContextDB(), insert, related)
+}
+
+// SetUser of the friendship to the related item.
+// Sets o.R.User to related.
+// Adds o to related.R.Friendships.
+func (o *Friendship) SetUser(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"friendships\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+		strmangle.WhereClause("\"", "\"", 2, friendshipPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.UserID = related.ID
+	if o.R == nil {
+		o.R = &friendshipR{
+			User: related,
+		}
+	} else {
+		o.R.User = related
+	}
+
+	if related.R == nil {
+		related.R = &userR{
+			Friendships: FriendshipSlice{o},
+		}
+	} else {
+		related.R.Friendships = append(related.R.Friendships, o)
+	}
+
+	return nil
 }
 
 // Friendships retrieves all the records using an executor.

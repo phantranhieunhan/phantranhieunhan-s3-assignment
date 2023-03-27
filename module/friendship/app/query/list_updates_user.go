@@ -33,17 +33,17 @@ func (h ListUpdatesUserHandler) Handle(ctx context.Context, email, text string) 
 		if err == domain.ErrNotFoundUserByEmail {
 			return nil, common.ErrInvalidRequest(err, "emails")
 		}
-		return []string{}, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
+		return nil, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
 	}
 	userID, ok := mapEmailUser[email]
 	if !ok {
-		return []string{}, common.ErrInvalidRequest(nil, "email")
+		return nil, common.ErrInvalidRequest(nil, "email")
 	}
 	// get list subscription from userId
 	subs, err := h.subscriptionRepo.GetSubscriptionEmailsByUserIDAndStatus(ctx, userID, domain.SubscriptionStatusSubscribed)
 	if err != nil {
 		logger.Errorf("subscriptionRepo.GetSubscriptionEmailsByUserIDAndStatus %w", err)
-		return []string{}, common.ErrCannotListEntity(domain.Subscription{}.DomainName(), err)
+		return nil, common.ErrCannotListEntity(domain.Subscription{}.DomainName(), err)
 	}
 
 	subs = append(subs, emailFromTexts...)
@@ -54,7 +54,7 @@ func (h ListUpdatesUserHandler) Handle(ctx context.Context, email, text string) 
 		blockSubs, err := h.subscriptionRepo.GetSubscriptionEmailsByUserIDAndStatus(ctx, userID, domain.SubscriptionStatusUnsubscribed)
 		if err != nil {
 			logger.Errorf("subscriptionRepo.GetSubscriptionEmailsByUserIDAndStatus %w", err)
-			return []string{}, common.ErrCannotListEntity(domain.Subscription{}.DomainName(), err)
+			return nil, common.ErrCannotListEntity(domain.Subscription{}.DomainName(), err)
 		}
 
 		if len(blockSubs) > 0 {

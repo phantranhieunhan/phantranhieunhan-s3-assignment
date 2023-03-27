@@ -86,15 +86,36 @@ var SubscriptionWhere = struct {
 
 // SubscriptionRels is where relationship names are stored.
 var SubscriptionRels = struct {
-}{}
+	Subscriber string
+	User       string
+}{
+	Subscriber: "Subscriber",
+	User:       "User",
+}
 
 // subscriptionR is where relationships are stored.
 type subscriptionR struct {
+	Subscriber *User `boil:"Subscriber" json:"Subscriber" toml:"Subscriber" yaml:"Subscriber"`
+	User       *User `boil:"User" json:"User" toml:"User" yaml:"User"`
 }
 
 // NewStruct creates a new relationship struct
 func (*subscriptionR) NewStruct() *subscriptionR {
 	return &subscriptionR{}
+}
+
+func (r *subscriptionR) GetSubscriber() *User {
+	if r == nil {
+		return nil
+	}
+	return r.Subscriber
+}
+
+func (r *subscriptionR) GetUser() *User {
+	if r == nil {
+		return nil
+	}
+	return r.User
 }
 
 // subscriptionL is where Load methods for each relationship are stored.
@@ -404,6 +425,378 @@ func (q subscriptionQuery) Exists(ctx context.Context, exec boil.ContextExecutor
 	}
 
 	return count > 0, nil
+}
+
+// Subscriber pointed to by the foreign key.
+func (o *Subscription) Subscriber(mods ...qm.QueryMod) userQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.SubscriberID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return Users(queryMods...)
+}
+
+// User pointed to by the foreign key.
+func (o *Subscription) User(mods ...qm.QueryMod) userQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.UserID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return Users(queryMods...)
+}
+
+// LoadSubscriber allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (subscriptionL) LoadSubscriber(ctx context.Context, e boil.ContextExecutor, singular bool, maybeSubscription interface{}, mods queries.Applicator) error {
+	var slice []*Subscription
+	var object *Subscription
+
+	if singular {
+		var ok bool
+		object, ok = maybeSubscription.(*Subscription)
+		if !ok {
+			object = new(Subscription)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeSubscription)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeSubscription))
+			}
+		}
+	} else {
+		s, ok := maybeSubscription.(*[]*Subscription)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeSubscription)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeSubscription))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &subscriptionR{}
+		}
+		args = append(args, object.SubscriberID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &subscriptionR{}
+			}
+
+			for _, a := range args {
+				if a == obj.SubscriberID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.SubscriberID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`users`),
+		qm.WhereIn(`users.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load User")
+	}
+
+	var resultSlice []*User
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice User")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for users")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
+	}
+
+	if len(userAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Subscriber = foreign
+		if foreign.R == nil {
+			foreign.R = &userR{}
+		}
+		foreign.R.SubscriberSubscriptions = append(foreign.R.SubscriberSubscriptions, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.SubscriberID == foreign.ID {
+				local.R.Subscriber = foreign
+				if foreign.R == nil {
+					foreign.R = &userR{}
+				}
+				foreign.R.SubscriberSubscriptions = append(foreign.R.SubscriberSubscriptions, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadUser allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (subscriptionL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular bool, maybeSubscription interface{}, mods queries.Applicator) error {
+	var slice []*Subscription
+	var object *Subscription
+
+	if singular {
+		var ok bool
+		object, ok = maybeSubscription.(*Subscription)
+		if !ok {
+			object = new(Subscription)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeSubscription)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeSubscription))
+			}
+		}
+	} else {
+		s, ok := maybeSubscription.(*[]*Subscription)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeSubscription)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeSubscription))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &subscriptionR{}
+		}
+		args = append(args, object.UserID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &subscriptionR{}
+			}
+
+			for _, a := range args {
+				if a == obj.UserID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.UserID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`users`),
+		qm.WhereIn(`users.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load User")
+	}
+
+	var resultSlice []*User
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice User")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for users")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
+	}
+
+	if len(userAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.User = foreign
+		if foreign.R == nil {
+			foreign.R = &userR{}
+		}
+		foreign.R.Subscriptions = append(foreign.R.Subscriptions, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.UserID == foreign.ID {
+				local.R.User = foreign
+				if foreign.R == nil {
+					foreign.R = &userR{}
+				}
+				foreign.R.Subscriptions = append(foreign.R.Subscriptions, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// SetSubscriberG of the subscription to the related item.
+// Sets o.R.Subscriber to related.
+// Adds o to related.R.SubscriberSubscriptions.
+// Uses the global database handle.
+func (o *Subscription) SetSubscriberG(ctx context.Context, insert bool, related *User) error {
+	return o.SetSubscriber(ctx, boil.GetContextDB(), insert, related)
+}
+
+// SetSubscriber of the subscription to the related item.
+// Sets o.R.Subscriber to related.
+// Adds o to related.R.SubscriberSubscriptions.
+func (o *Subscription) SetSubscriber(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"subscriptions\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"subscriber_id"}),
+		strmangle.WhereClause("\"", "\"", 2, subscriptionPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.SubscriberID = related.ID
+	if o.R == nil {
+		o.R = &subscriptionR{
+			Subscriber: related,
+		}
+	} else {
+		o.R.Subscriber = related
+	}
+
+	if related.R == nil {
+		related.R = &userR{
+			SubscriberSubscriptions: SubscriptionSlice{o},
+		}
+	} else {
+		related.R.SubscriberSubscriptions = append(related.R.SubscriberSubscriptions, o)
+	}
+
+	return nil
+}
+
+// SetUserG of the subscription to the related item.
+// Sets o.R.User to related.
+// Adds o to related.R.Subscriptions.
+// Uses the global database handle.
+func (o *Subscription) SetUserG(ctx context.Context, insert bool, related *User) error {
+	return o.SetUser(ctx, boil.GetContextDB(), insert, related)
+}
+
+// SetUser of the subscription to the related item.
+// Sets o.R.User to related.
+// Adds o to related.R.Subscriptions.
+func (o *Subscription) SetUser(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"subscriptions\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+		strmangle.WhereClause("\"", "\"", 2, subscriptionPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.UserID = related.ID
+	if o.R == nil {
+		o.R = &subscriptionR{
+			User: related,
+		}
+	} else {
+		o.R.User = related
+	}
+
+	if related.R == nil {
+		related.R = &userR{
+			Subscriptions: SubscriptionSlice{o},
+		}
+	} else {
+		related.R.Subscriptions = append(related.R.Subscriptions, o)
+	}
+
+	return nil
 }
 
 // Subscriptions retrieves all the records using an executor.
