@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/phantranhieunhan/s3-assignment/common"
-	mockHandler "github.com/phantranhieunhan/s3-assignment/mock/friendship/handler"
 	mockRepo "github.com/phantranhieunhan/s3-assignment/mock/friendship/repository"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 
@@ -38,14 +37,12 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 	mockFriendshipRepo := new(mockRepo.MockFriendshipRepository)
 	mockUserRepo := new(mockRepo.MockUserRepository)
 	mockTransaction := new(mockRepo.MockTransaction)
-	mockSubUserHandler := new(mockHandler.MockSubscribeUserHandler)
 
-	h := NewConnectFriendshipHandler(mockFriendshipRepo, mockUserRepo, mockTransaction, mockSubUserHandler)
+	h := NewConnectFriendshipHandler(mockFriendshipRepo, mockUserRepo, mockTransaction)
 
 	repoMock := &RepoMock_TestFriendship_ConnectFriendship{
 		mockUserRepo:       mockUserRepo,
 		mockFriendshipRepo: mockFriendshipRepo,
-		mockSubUserHandler: mockSubUserHandler,
 		mockTransaction:    mockTransaction,
 	}
 
@@ -140,12 +137,19 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 
 			repoMock.prepare(ctx, t, tc)
 
-			id, err := h.Handle(ctx, emails[0], emails[1])
+			friendship, err := h.Handle(ctx, emails[0], emails[1])
 			assert.Equal(t, err, tc.err)
 			if tc.err == nil {
-				assert.Equal(t, friendshipId, id)
+				assert.Equal(t, domain.Friendship{
+					Base: domain.Base{
+						Id: friendshipId,
+					},
+					UserID:   friends[0],
+					FriendID: friends[1],
+					Status:   domain.FriendshipStatusFriended,
+				}, friendship)
 			}
-			mock.AssertExpectationsForObjects(t, mockFriendshipRepo, mockUserRepo, mockTransaction, mockSubUserHandler)
+			mock.AssertExpectationsForObjects(t, mockFriendshipRepo, mockUserRepo, mockTransaction)
 		})
 	}
 }
@@ -153,7 +157,6 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 type RepoMock_TestFriendship_ConnectFriendship struct {
 	mockUserRepo       *mockRepo.MockUserRepository
 	mockFriendshipRepo *mockRepo.MockFriendshipRepository
-	mockSubUserHandler *mockHandler.MockSubscribeUserHandler
 	mockTransaction    *mockRepo.MockTransaction
 }
 
@@ -193,12 +196,6 @@ func (r *RepoMock_TestFriendship_ConnectFriendship) prepare(ctx context.Context,
 			if d.Status.CanConnect() {
 				r.mockFriendshipRepo.On("UpdateStatus", ctx, friendshipId, domain.FriendshipStatusFriended).Return(tc.updateError).Once()
 			}
-		}
-		if tc.withinTransactionError == nil {
-			r.mockSubUserHandler.On("HandleWithSubscription", ctx, domain.Subscriptions{
-				domain.Subscription{UserID: friends[0], SubscriberID: friends[1]},
-				domain.Subscription{UserID: friends[1], SubscriberID: friends[0]},
-			}).Return(nil).Once()
 		}
 	}
 }
