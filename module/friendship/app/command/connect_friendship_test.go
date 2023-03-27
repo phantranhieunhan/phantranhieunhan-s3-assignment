@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/phantranhieunhan/s3-assignment/common"
-	mockMq "github.com/phantranhieunhan/s3-assignment/mock/friendship/mq"
+	mockHandler "github.com/phantranhieunhan/s3-assignment/mock/friendship/handler"
 	mockRepo "github.com/phantranhieunhan/s3-assignment/mock/friendship/repository"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 
@@ -38,14 +38,14 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 	mockFriendshipRepo := new(mockRepo.MockFriendshipRepository)
 	mockUserRepo := new(mockRepo.MockUserRepository)
 	mockTransaction := new(mockRepo.MockTransaction)
-	mockSubMQ := new(mockMq.MockSubscriptionMQ)
+	mockSubUserHandler := new(mockHandler.MockSubscribeUserHandler)
 
-	h := NewConnectFriendshipHandler(mockFriendshipRepo, mockUserRepo, mockTransaction, mockSubMQ)
+	h := NewConnectFriendshipHandler(mockFriendshipRepo, mockUserRepo, mockTransaction, mockSubUserHandler)
 
 	repoMock := &RepoMock_TestFriendship_ConnectFriendship{
 		mockUserRepo:       mockUserRepo,
 		mockFriendshipRepo: mockFriendshipRepo,
-		mockSubMQ:          mockSubMQ,
+		mockSubUserHandler: mockSubUserHandler,
 		mockTransaction:    mockTransaction,
 	}
 
@@ -145,7 +145,7 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 			if tc.err == nil {
 				assert.Equal(t, friendshipId, id)
 			}
-			mock.AssertExpectationsForObjects(t, mockFriendshipRepo, mockUserRepo, mockTransaction, mockSubMQ)
+			mock.AssertExpectationsForObjects(t, mockFriendshipRepo, mockUserRepo, mockTransaction, mockSubUserHandler)
 		})
 	}
 }
@@ -153,7 +153,7 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 type RepoMock_TestFriendship_ConnectFriendship struct {
 	mockUserRepo       *mockRepo.MockUserRepository
 	mockFriendshipRepo *mockRepo.MockFriendshipRepository
-	mockSubMQ          *mockMq.MockSubscriptionMQ
+	mockSubUserHandler *mockHandler.MockSubscribeUserHandler
 	mockTransaction    *mockRepo.MockTransaction
 }
 
@@ -195,7 +195,7 @@ func (r *RepoMock_TestFriendship_ConnectFriendship) prepare(ctx context.Context,
 			}
 		}
 		if tc.withinTransactionError == nil {
-			r.mockSubMQ.On("SubscribeUser", ctx, domain.Subscriptions{
+			r.mockSubUserHandler.On("HandleWithSubscription", ctx, domain.Subscriptions{
 				domain.Subscription{UserID: friends[0], SubscriberID: friends[1]},
 				domain.Subscription{UserID: friends[1], SubscriberID: friends[0]},
 			}).Return(nil).Once()

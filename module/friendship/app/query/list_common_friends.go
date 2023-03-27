@@ -10,21 +10,12 @@ import (
 
 const EMAIL_TOTAL = 2
 
-type ListCommonFriends_FriendshipRepo interface {
-	GetFriendshipByUserIDAndStatus(ctx context.Context, mapEmailUser map[string]string, status ...domain.FriendshipStatus) ([]string, error)
-}
-
-type ListCommonFriends_UserRepo interface {
-	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error)
-	GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, error)
-}
-
 type ListCommonFriendsHandler struct {
-	repo     ListCommonFriends_FriendshipRepo
-	userRepo ListCommonFriends_UserRepo
+	repo     domain.FriendshipRepo
+	userRepo domain.UserRepo
 }
 
-func NewListCommonFriendsHandler(repo ListCommonFriends_FriendshipRepo, userRepo ListCommonFriends_UserRepo) ListCommonFriendsHandler {
+func NewListCommonFriendsHandler(repo domain.FriendshipRepo, userRepo domain.UserRepo) ListCommonFriendsHandler {
 	return ListCommonFriendsHandler{
 		repo:     repo,
 		userRepo: userRepo,
