@@ -16,10 +16,9 @@ func New(r *gin.Engine, db postgres.Database) {
 	userRepo := repository.NewUserRepository(db)
 	subRepo := repository.NewSubscriptionRepository(db)
 
-	subscribeUserCommand := command.NewSubscribeUserHandler(friendshipRepo, userRepo, subRepo, db)
 	application := app.Application{
 		Commands: app.Commands{
-			ConnectFriendship: command.NewConnectFriendshipHandler(friendshipRepo, userRepo, db, subscribeUserCommand),
+			ConnectFriendship: command.NewConnectFriendshipHandler(friendshipRepo, userRepo, db),
 			SubscribeUser:     command.NewSubscribeUserHandler(friendshipRepo, userRepo, subRepo, db),
 			BlockUpdatesUser:  command.NewBlockUpdatesUserHandler(friendshipRepo, userRepo, subRepo, db),
 		},
