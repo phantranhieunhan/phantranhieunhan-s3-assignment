@@ -8,6 +8,7 @@ import (
 
 	"github.com/phantranhieunhan/s3-assignment/common/adapter/postgres"
 	"github.com/phantranhieunhan/s3-assignment/common/logger"
+	"github.com/phantranhieunhan/s3-assignment/middleware"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship"
 	"github.com/phantranhieunhan/s3-assignment/pkg/config"
 )
@@ -26,7 +27,7 @@ func main() {
 	db := postgres.NewDatabase()
 
 	r := gin.Default()
-	// r.Use(middleware.Recover)
+	r.Use(middleware.Recover)
 
 	friendship.New(r, db)
 
