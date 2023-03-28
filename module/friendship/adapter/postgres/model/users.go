@@ -24,8 +24,6 @@ import (
 // User is an object representing the database table.
 type User struct {
 	ID        string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Username  string    `boil:"username" json:"username" toml:"username" yaml:"username"`
-	Password  string    `boil:"password" json:"password" toml:"password" yaml:"password"`
 	Email     string    `boil:"email" json:"email" toml:"email" yaml:"email"`
 	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
@@ -36,15 +34,11 @@ type User struct {
 
 var UserColumns = struct {
 	ID        string
-	Username  string
-	Password  string
 	Email     string
 	CreatedAt string
 	UpdatedAt string
 }{
 	ID:        "id",
-	Username:  "username",
-	Password:  "password",
 	Email:     "email",
 	CreatedAt: "created_at",
 	UpdatedAt: "updated_at",
@@ -52,15 +46,11 @@ var UserColumns = struct {
 
 var UserTableColumns = struct {
 	ID        string
-	Username  string
-	Password  string
 	Email     string
 	CreatedAt string
 	UpdatedAt string
 }{
 	ID:        "users.id",
-	Username:  "users.username",
-	Password:  "users.password",
 	Email:     "users.email",
 	CreatedAt: "users.created_at",
 	UpdatedAt: "users.updated_at",
@@ -70,15 +60,11 @@ var UserTableColumns = struct {
 
 var UserWhere = struct {
 	ID        whereHelperstring
-	Username  whereHelperstring
-	Password  whereHelperstring
 	Email     whereHelperstring
 	CreatedAt whereHelpertime_Time
 	UpdatedAt whereHelpertime_Time
 }{
 	ID:        whereHelperstring{field: "\"users\".\"id\""},
-	Username:  whereHelperstring{field: "\"users\".\"username\""},
-	Password:  whereHelperstring{field: "\"users\".\"password\""},
 	Email:     whereHelperstring{field: "\"users\".\"email\""},
 	CreatedAt: whereHelpertime_Time{field: "\"users\".\"created_at\""},
 	UpdatedAt: whereHelpertime_Time{field: "\"users\".\"updated_at\""},
@@ -142,8 +128,8 @@ func (r *userR) GetSubscriptions() SubscriptionSlice {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "username", "password", "email", "created_at", "updated_at"}
-	userColumnsWithoutDefault = []string{"id", "username", "password", "email", "created_at", "updated_at"}
+	userAllColumns            = []string{"id", "email", "created_at", "updated_at"}
+	userColumnsWithoutDefault = []string{"id", "email", "created_at", "updated_at"}
 	userColumnsWithDefault    = []string{}
 	userPrimaryKeyColumns     = []string{"id"}
 	userGeneratedColumns      = []string{}

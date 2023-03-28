@@ -6,8 +6,8 @@ import (
 
 	"github.com/phantranhieunhan/s3-assignment/common"
 	"github.com/phantranhieunhan/s3-assignment/common/logger"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/command/payload"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
-	"github.com/phantranhieunhan/s3-assignment/pkg/util"
 )
 
 const EMAIL_TOTAL = 2
@@ -28,29 +28,8 @@ func NewSubscribeUserHandler(repo domain.FriendshipRepo, userRepo domain.UserRep
 	}
 }
 
-type SubscriberUserPayload struct {
-	Requestor string
-	Target    string
-}
-
-type SubscriberUserPayloads []SubscriberUserPayload
-
-func (s SubscriberUserPayloads) GetEmails() []string {
-	userIds := make([]string, 0, len(s)*EMAIL_TOTAL)
-	for _, u := range s {
-		if !util.IsContain(userIds, u.Requestor) {
-			userIds = append(userIds, u.Requestor)
-		}
-		if !util.IsContain(userIds, u.Target) {
-			userIds = append(userIds, u.Target)
-		}
-	}
-
-	return userIds
-}
-
-func (h SubscribeUserHandler) Handle(ctx context.Context, payload SubscriberUserPayloads) error {
-	emails := payload.GetEmails()
+func (h SubscribeUserHandler) Handle(ctx context.Context, payload payload.SubscriberUserPayloads) error {
+	emails := payload.GetEmails(EMAIL_TOTAL)
 	if len(emails) < EMAIL_TOTAL {
 		return common.ErrInvalidRequest(domain.ErrEmailIsNotValid, "payload")
 	}

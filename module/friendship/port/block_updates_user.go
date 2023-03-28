@@ -5,7 +5,7 @@ import (
 
 	"github.com/phantranhieunhan/s3-assignment/common"
 	"github.com/phantranhieunhan/s3-assignment/common/logger"
-	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/command"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/command/payload"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/port/constant"
 
 	"github.com/gin-gonic/gin"
@@ -42,7 +42,7 @@ func (s *Server) BlockUpdatesUser(c *gin.Context) {
 		return
 	}
 
-	err = s.app.Commands.BlockUpdatesUser.Handle(c.Request.Context(), command.BlockUpdatesUserPayload{
+	err = s.app.Commands.BlockUpdatesUser.Handle(c.Request.Context(), payload.BlockUpdatesUserPayload{
 		Requestor: req.Requestor,
 		Target:    req.Target,
 	})

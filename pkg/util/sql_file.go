@@ -10,11 +10,11 @@ import (
 )
 
 // LoadTestSQLFile load test sql data from a file
-func LoadTestSQLFile(t *testing.T, tx boil.ContextExecutor, filename string, args ...interface{}) {
+func LoadTestSQLFile(ctx context.Context, t *testing.T, tx boil.ContextExecutor, filename string, args ...interface{}) {
 	body, err := ReadFile(filename)
 	require.NoError(t, err)
 
-	_, err = tx.ExecContext(context.Background(), string(body), args...)
+	_, err = tx.Exec(string(body), args...)
 	require.NoError(t, err)
 }
 

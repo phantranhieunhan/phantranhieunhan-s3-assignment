@@ -38,9 +38,12 @@ func (f FriendshipRepository) UpdateStatus(ctx context.Context, id string, statu
 		ID:     id,
 		Status: int(status),
 	}
-	_, err := m.Update(ctx, f.db.Model(ctx), boil.Whitelist(model.FriendshipColumns.Status, model.FriendshipColumns.UpdatedAt))
+	effectedRows, err := m.Update(ctx, f.db.Model(ctx), boil.Whitelist(model.FriendshipColumns.Status, model.FriendshipColumns.UpdatedAt))
 	if err != nil {
 		return common.ErrDB(err)
+	}
+	if effectedRows != 1 {
+		return common.ErrDB(domain.ErrUpdateRecordNotFound)
 	}
 	return nil
 }

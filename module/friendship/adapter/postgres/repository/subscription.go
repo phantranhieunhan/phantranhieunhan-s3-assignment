@@ -38,14 +38,19 @@ func (f SubscriptionRepository) UpdateStatus(ctx context.Context, id string, sta
 		ID:     id,
 		Status: int(status),
 	}
-	_, err := m.Update(ctx, f.db.Model(ctx), boil.Whitelist(model.SubscriptionColumns.Status, model.SubscriptionColumns.UpdatedAt))
+	effectedRows, err := m.Update(ctx, f.db.Model(ctx), boil.Whitelist(model.SubscriptionColumns.Status, model.SubscriptionColumns.UpdatedAt))
 	if err != nil {
 		return common.ErrDB(err)
 	}
+
+	if effectedRows != 1 {
+		return common.ErrDB(domain.ErrUpdateRecordNotFound)
+	}
+
 	return nil
 }
 
-func (f SubscriptionRepository) UnsertSubscription(ctx context.Context, sub domain.Subscription) error {
+func (f SubscriptionRepository) UnsertSubscription(ctx context.Context, sub domain.Subscription) (string, error) {
 	m := convert.ToSubscriptionModel(sub)
 	if m.ID == "" {
 		m.ID = util.GenUUID()
@@ -53,9 +58,9 @@ func (f SubscriptionRepository) UnsertSubscription(ctx context.Context, sub doma
 	conflictFields := []string{model.SubscriptionColumns.UserID, model.SubscriptionColumns.SubscriberID}
 	err := m.Upsert(ctx, f.db.Model(ctx), true, conflictFields, boil.Whitelist(model.SubscriptionColumns.Status, model.FriendshipColumns.UpdatedAt), boil.Infer())
 	if err != nil {
-		return common.ErrDB(err)
+		return "", common.ErrDB(err)
 	}
-	return nil
+	return m.ID, nil
 }
 
 func (s SubscriptionRepository) GetSubscription(ctx context.Context, ss domain.Subscriptions) (domain.Subscriptions, error) {

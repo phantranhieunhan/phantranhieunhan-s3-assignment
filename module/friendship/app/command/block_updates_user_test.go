@@ -8,6 +8,7 @@ import (
 
 	"github.com/phantranhieunhan/s3-assignment/common"
 	mockRepo "github.com/phantranhieunhan/s3-assignment/mock/friendship/repository"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/command/payload"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -197,7 +198,7 @@ func TestFriendship_BlockUpdatesUserHandler(t *testing.T) {
 
 			repoMock.prepare(ctx, t, tc)
 
-			err := h.Handle(ctx, BlockUpdatesUserPayload{
+			err := h.Handle(ctx, payload.BlockUpdatesUserPayload{
 				Requestor: tc.requestorEmail,
 				Target:    tc.targetEmail,
 			})
@@ -258,5 +259,5 @@ func (r *RepoMock_TestFriendship_BlockUpdatesUserHandler) prepareUnsubscribeMock
 
 	r.mockSubscriptionRepo.On("UnsertSubscription", ctx, domain.Subscription{
 		UserID: friends[1], SubscriberID: friends[0], Status: domain.SubscriptionStatusUnsubscribed},
-	).Return(tc.upsertSubscriptionError).Once()
+	).Return("", tc.upsertSubscriptionError).Once()
 }

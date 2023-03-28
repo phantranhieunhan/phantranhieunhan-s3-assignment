@@ -37,7 +37,7 @@ func (h ListCommonFriendsHandler) Handle(ctx context.Context, emails []string) (
 	}
 
 	friends, err := h.repo.GetFriendshipByUserIDAndStatus(ctx, mapEmailUserIDs, domain.FriendshipStatusFriended)
-	if err != nil {
+	if err != nil && err != domain.ErrRecordNotFound {
 		logger.Errorf("friendshipRepo.GetFriendshipByUserIDAndStatus %w", err)
 		return nil, common.ErrCannotListEntity(domain.Friendship{}.DomainName(), err)
 	}
