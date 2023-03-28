@@ -12,76 +12,76 @@ import "testing"
 // It does NOT run each operation group in parallel.
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
-	t.Run("Followers", testFollowers)
 	t.Run("Friendships", testFriendships)
+	t.Run("Subscriptions", testSubscriptions)
 	t.Run("Users", testUsers)
 }
 
 func TestDelete(t *testing.T) {
-	t.Run("Followers", testFollowersDelete)
 	t.Run("Friendships", testFriendshipsDelete)
+	t.Run("Subscriptions", testSubscriptionsDelete)
 	t.Run("Users", testUsersDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
-	t.Run("Followers", testFollowersQueryDeleteAll)
 	t.Run("Friendships", testFriendshipsQueryDeleteAll)
+	t.Run("Subscriptions", testSubscriptionsQueryDeleteAll)
 	t.Run("Users", testUsersQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
-	t.Run("Followers", testFollowersSliceDeleteAll)
 	t.Run("Friendships", testFriendshipsSliceDeleteAll)
+	t.Run("Subscriptions", testSubscriptionsSliceDeleteAll)
 	t.Run("Users", testUsersSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
-	t.Run("Followers", testFollowersExists)
 	t.Run("Friendships", testFriendshipsExists)
+	t.Run("Subscriptions", testSubscriptionsExists)
 	t.Run("Users", testUsersExists)
 }
 
 func TestFind(t *testing.T) {
-	t.Run("Followers", testFollowersFind)
 	t.Run("Friendships", testFriendshipsFind)
+	t.Run("Subscriptions", testSubscriptionsFind)
 	t.Run("Users", testUsersFind)
 }
 
 func TestBind(t *testing.T) {
-	t.Run("Followers", testFollowersBind)
 	t.Run("Friendships", testFriendshipsBind)
+	t.Run("Subscriptions", testSubscriptionsBind)
 	t.Run("Users", testUsersBind)
 }
 
 func TestOne(t *testing.T) {
-	t.Run("Followers", testFollowersOne)
 	t.Run("Friendships", testFriendshipsOne)
+	t.Run("Subscriptions", testSubscriptionsOne)
 	t.Run("Users", testUsersOne)
 }
 
 func TestAll(t *testing.T) {
-	t.Run("Followers", testFollowersAll)
 	t.Run("Friendships", testFriendshipsAll)
+	t.Run("Subscriptions", testSubscriptionsAll)
 	t.Run("Users", testUsersAll)
 }
 
 func TestCount(t *testing.T) {
-	t.Run("Followers", testFollowersCount)
 	t.Run("Friendships", testFriendshipsCount)
+	t.Run("Subscriptions", testSubscriptionsCount)
 	t.Run("Users", testUsersCount)
 }
 
 func TestHooks(t *testing.T) {
-	t.Run("Followers", testFollowersHooks)
 	t.Run("Friendships", testFriendshipsHooks)
+	t.Run("Subscriptions", testSubscriptionsHooks)
 	t.Run("Users", testUsersHooks)
 }
 
 func TestInsert(t *testing.T) {
-	t.Run("Followers", testFollowersInsert)
-	t.Run("Followers", testFollowersInsertWhitelist)
 	t.Run("Friendships", testFriendshipsInsert)
 	t.Run("Friendships", testFriendshipsInsertWhitelist)
+	t.Run("Subscriptions", testSubscriptionsInsert)
+	t.Run("Subscriptions", testSubscriptionsInsertWhitelist)
 	t.Run("Users", testUsersInsert)
 	t.Run("Users", testUsersInsertWhitelist)
 }
@@ -127,31 +127,31 @@ func TestToManySet(t *testing.T) {}
 func TestToManyRemove(t *testing.T) {}
 
 func TestReload(t *testing.T) {
-	t.Run("Followers", testFollowersReload)
 	t.Run("Friendships", testFriendshipsReload)
+	t.Run("Subscriptions", testSubscriptionsReload)
 	t.Run("Users", testUsersReload)
 }
 
 func TestReloadAll(t *testing.T) {
-	t.Run("Followers", testFollowersReloadAll)
 	t.Run("Friendships", testFriendshipsReloadAll)
+	t.Run("Subscriptions", testSubscriptionsReloadAll)
 	t.Run("Users", testUsersReloadAll)
 }
 
 func TestSelect(t *testing.T) {
-	t.Run("Followers", testFollowersSelect)
 	t.Run("Friendships", testFriendshipsSelect)
+	t.Run("Subscriptions", testSubscriptionsSelect)
 	t.Run("Users", testUsersSelect)
 }
 
 func TestUpdate(t *testing.T) {
-	t.Run("Followers", testFollowersUpdate)
 	t.Run("Friendships", testFriendshipsUpdate)
+	t.Run("Subscriptions", testSubscriptionsUpdate)
 	t.Run("Users", testUsersUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
-	t.Run("Followers", testFollowersSliceUpdateAll)
 	t.Run("Friendships", testFriendshipsSliceUpdateAll)
+	t.Run("Subscriptions", testSubscriptionsSliceUpdateAll)
 	t.Run("Users", testUsersSliceUpdateAll)
 }

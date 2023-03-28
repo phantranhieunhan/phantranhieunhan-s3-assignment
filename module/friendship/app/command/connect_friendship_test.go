@@ -34,9 +34,11 @@ type TestCase_Friendship_ConnectFriendship struct {
 
 func TestFriendship_ConnectFriendship(t *testing.T) {
 	t.Parallel()
-	mockTransaction := new(mockRepo.MockTransaction)
-	mockUserRepo := new(mockRepo.MockUserRepository)
 	mockFriendshipRepo := new(mockRepo.MockFriendshipRepository)
+	mockUserRepo := new(mockRepo.MockUserRepository)
+	mockTransaction := new(mockRepo.MockTransaction)
+
+	h := NewConnectFriendshipHandler(mockFriendshipRepo, mockUserRepo, mockTransaction)
 
 	repoMock := &RepoMock_TestFriendship_ConnectFriendship{
 		mockUserRepo:       mockUserRepo,
@@ -87,14 +89,14 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 			err:                     common.ErrInvalidRequest(domain.ErrNotFoundUserByEmail, "emails"),
 		},
 		{
-			name: "connect friendship fail because their relationship is blocked",
+			name:                       "connect friendship fail because their relationship is blocked",
 			getUserIDsByEmailsData:     mapEmails,
 			withinTransactionError:     common.ErrInvalidRequest(domain.ErrFriendshipIsUnavailable, ""),
 			getFriendshipByUserIDsData: domain.FriendshipStatusBlocked,
 			err:                        common.ErrInvalidRequest(domain.ErrFriendshipIsUnavailable, ""),
 		},
 		{
-			name: "connect friendship fail because their relationship is pending",
+			name:                       "connect friendship fail because their relationship is pending",
 			getUserIDsByEmailsData:     mapEmails,
 			withinTransactionError:     common.ErrInvalidRequest(domain.ErrFriendshipIsUnavailable, ""),
 			getFriendshipByUserIDsData: domain.FriendshipStatusPending,
@@ -135,11 +137,17 @@ func TestFriendship_ConnectFriendship(t *testing.T) {
 
 			repoMock.prepare(ctx, t, tc)
 
-			h := NewConnectFriendshipHandler(mockFriendshipRepo, mockUserRepo, mockTransaction)
-			id, err := h.Handle(ctx, emails[0], emails[1])
+			friendship, err := h.Handle(ctx, emails[0], emails[1])
 			assert.Equal(t, err, tc.err)
 			if tc.err == nil {
-				assert.Equal(t, friendshipId, id)
+				assert.Equal(t, domain.Friendship{
+					Base: domain.Base{
+						Id: friendshipId,
+					},
+					UserID:   friends[0],
+					FriendID: friends[1],
+					Status:   domain.FriendshipStatusFriended,
+				}, friendship)
 			}
 			mock.AssertExpectationsForObjects(t, mockFriendshipRepo, mockUserRepo, mockTransaction)
 		})
@@ -182,7 +190,6 @@ func (r *RepoMock_TestFriendship_ConnectFriendship) prepare(ctx context.Context,
 			Status:   tc.getFriendshipByUserIDsData,
 		}
 		r.mockFriendshipRepo.On("GetFriendshipByUserIDs", ctx, friends[0], friends[1]).Return(d, tc.getFriendshipByUserIDsError).Once()
-
 		if tc.getFriendshipByUserIDsError == domain.ErrRecordNotFound {
 			r.mockFriendshipRepo.On("Create", ctx, domain.Friendship{UserID: friends[0], FriendID: friends[1], Status: domain.FriendshipStatusFriended}).Return(friendshipId, tc.createError).Once()
 		} else {

@@ -20,14 +20,14 @@ CREATE TABLE public.friendships(
     CONSTRAINT friendships_pk PRIMARY KEY (id)
 );
 
-CREATE TABLE public.followers(
+CREATE TABLE public.subscriptions(
 	id text not null,
 	user_id text not null,
-	following_id text not null,
+	subscriber text not null,
 	status int not null default 0,
 	created_at timestamp with time zone not null,
     updated_at timestamp with time zone not null,
-    CONSTRAINT followers_pk PRIMARY KEY (id)
+    CONSTRAINT subscription_pk PRIMARY KEY (id)
 );
 
 INSERT INTO public.users

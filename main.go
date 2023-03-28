@@ -20,6 +20,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	// Init logger.
 	logger.Setup(config.C.Env)
 

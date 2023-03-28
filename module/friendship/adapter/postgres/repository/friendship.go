@@ -30,15 +30,15 @@ func (f FriendshipRepository) Create(ctx context.Context, d domain.Friendship) (
 	if err := m.Insert(ctx, f.db.Model(ctx), boil.Infer()); err != nil {
 		return "", common.ErrDB(err)
 	}
-	return m.FriendID, nil
+	return m.ID, nil
 }
 
 func (f FriendshipRepository) UpdateStatus(ctx context.Context, id string, status domain.FriendshipStatus) error {
-	m := convert.ToFriendshipModel(domain.Friendship{
-		Base:   domain.Base{Id: id},
-		Status: status,
-	})
-	_, err := m.Update(ctx, f.db.Model(ctx), boil.Whitelist(model.FollowerColumns.Status, model.FollowerColumns.UpdatedAt))
+	m := model.Friendship{
+		ID:     id,
+		Status: int(status),
+	}
+	_, err := m.Update(ctx, f.db.Model(ctx), boil.Whitelist(model.FriendshipColumns.Status, model.FriendshipColumns.UpdatedAt))
 	if err != nil {
 		return common.ErrDB(err)
 	}
@@ -52,7 +52,7 @@ func (f FriendshipRepository) GetFriendshipByUserIDs(ctx context.Context, userID
 		return domain.Friendship{}, common.ErrDB(err)
 	}
 	if len(m) == 0 {
-		return domain.Friendship{}, nil
+		return domain.Friendship{}, domain.ErrRecordNotFound
 	}
 	return convert.ToFriendshipDomain(*(m[0])), nil
 }
@@ -101,22 +101,13 @@ func (f FriendshipRepository) getFriendsOfUsers(entireEmails []view.Email, mapEm
 	emails := util.MapKeysToSlice(mapEmailUser)
 	for _, v := range entireEmails {
 		var y string
-		if isContain(emails, v.UserEmail) {
+		if util.IsContain(emails, v.UserEmail) {
 			y = v.FriendEmail
 		}
-		if isContain(emails, v.FriendEmail) {
+		if util.IsContain(emails, v.FriendEmail) {
 			y = v.UserEmail
 		}
 		result = append(result, y)
 	}
 	return result
-}
-
-func isContain(list []string, s string) bool {
-	for _, item := range list {
-		if item == s {
-			return true
-		}
-	}
-	return false
 }

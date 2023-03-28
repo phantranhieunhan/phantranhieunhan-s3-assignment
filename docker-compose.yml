@@ -16,7 +16,7 @@ services:
     networks: [ "microservices" ]
     restart: always
     environment:
-      - POSTGRES_URL=postgres://postgres:changeme@postgres_container:5432/postgres
+      - POSTGRES_URL=postgres://postgres:changeme@postgres_container:5432/postgres?sslmode=disable
       - PORT=3000
       - ENV=prod
 

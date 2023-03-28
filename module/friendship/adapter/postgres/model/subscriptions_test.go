@@ -21,24 +21,24 @@ var (
 	_ = queries.Equal
 )
 
-func testFollowers(t *testing.T) {
+func testSubscriptions(t *testing.T) {
 	t.Parallel()
 
-	query := Followers()
+	query := Subscriptions()
 
 	if query.Query == nil {
 		t.Error("expected a query, got nothing")
 	}
 }
 
-func testFollowersDelete(t *testing.T) {
+func testSubscriptionsDelete(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Follower{}
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := &Subscription{}
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -54,7 +54,7 @@ func testFollowersDelete(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Followers().Count(ctx, tx)
+	count, err := Subscriptions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,14 +64,14 @@ func testFollowersDelete(t *testing.T) {
 	}
 }
 
-func testFollowersQueryDeleteAll(t *testing.T) {
+func testSubscriptionsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Follower{}
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := &Subscription{}
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -81,13 +81,13 @@ func testFollowersQueryDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	if rowsAff, err := Followers().DeleteAll(ctx, tx); err != nil {
+	if rowsAff, err := Subscriptions().DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Followers().Count(ctx, tx)
+	count, err := Subscriptions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -97,14 +97,14 @@ func testFollowersQueryDeleteAll(t *testing.T) {
 	}
 }
 
-func testFollowersSliceDeleteAll(t *testing.T) {
+func testSubscriptionsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Follower{}
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := &Subscription{}
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -114,7 +114,7 @@ func testFollowersSliceDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := FollowerSlice{o}
+	slice := SubscriptionSlice{o}
 
 	if rowsAff, err := slice.DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
@@ -122,7 +122,7 @@ func testFollowersSliceDeleteAll(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Followers().Count(ctx, tx)
+	count, err := Subscriptions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -132,14 +132,14 @@ func testFollowersSliceDeleteAll(t *testing.T) {
 	}
 }
 
-func testFollowersExists(t *testing.T) {
+func testSubscriptionsExists(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Follower{}
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := &Subscription{}
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -149,23 +149,23 @@ func testFollowersExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := FollowerExists(ctx, tx, o.ID)
+	e, err := SubscriptionExists(ctx, tx, o.ID)
 	if err != nil {
-		t.Errorf("Unable to check if Follower exists: %s", err)
+		t.Errorf("Unable to check if Subscription exists: %s", err)
 	}
 	if !e {
-		t.Errorf("Expected FollowerExists to return true, but got false.")
+		t.Errorf("Expected SubscriptionExists to return true, but got false.")
 	}
 }
 
-func testFollowersFind(t *testing.T) {
+func testSubscriptionsFind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Follower{}
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := &Subscription{}
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -175,24 +175,24 @@ func testFollowersFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	followerFound, err := FindFollower(ctx, tx, o.ID)
+	subscriptionFound, err := FindSubscription(ctx, tx, o.ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if followerFound == nil {
+	if subscriptionFound == nil {
 		t.Error("want a record, got nil")
 	}
 }
 
-func testFollowersBind(t *testing.T) {
+func testSubscriptionsBind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Follower{}
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := &Subscription{}
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -202,19 +202,19 @@ func testFollowersBind(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err = Followers().Bind(ctx, tx, o); err != nil {
+	if err = Subscriptions().Bind(ctx, tx, o); err != nil {
 		t.Error(err)
 	}
 }
 
-func testFollowersOne(t *testing.T) {
+func testSubscriptionsOne(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Follower{}
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := &Subscription{}
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -224,38 +224,38 @@ func testFollowersOne(t *testing.T) {
 		t.Error(err)
 	}
 
-	if x, err := Followers().One(ctx, tx); err != nil {
+	if x, err := Subscriptions().One(ctx, tx); err != nil {
 		t.Error(err)
 	} else if x == nil {
 		t.Error("expected to get a non nil record")
 	}
 }
 
-func testFollowersAll(t *testing.T) {
+func testSubscriptionsAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	followerOne := &Follower{}
-	followerTwo := &Follower{}
-	if err = randomize.Struct(seed, followerOne, followerDBTypes, false, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	subscriptionOne := &Subscription{}
+	subscriptionTwo := &Subscription{}
+	if err = randomize.Struct(seed, subscriptionOne, subscriptionDBTypes, false, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
-	if err = randomize.Struct(seed, followerTwo, followerDBTypes, false, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	if err = randomize.Struct(seed, subscriptionTwo, subscriptionDBTypes, false, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = followerOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = subscriptionOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = followerTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = subscriptionTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	slice, err := Followers().All(ctx, tx)
+	slice, err := Subscriptions().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -265,31 +265,31 @@ func testFollowersAll(t *testing.T) {
 	}
 }
 
-func testFollowersCount(t *testing.T) {
+func testSubscriptionsCount(t *testing.T) {
 	t.Parallel()
 
 	var err error
 	seed := randomize.NewSeed()
-	followerOne := &Follower{}
-	followerTwo := &Follower{}
-	if err = randomize.Struct(seed, followerOne, followerDBTypes, false, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	subscriptionOne := &Subscription{}
+	subscriptionTwo := &Subscription{}
+	if err = randomize.Struct(seed, subscriptionOne, subscriptionDBTypes, false, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
-	if err = randomize.Struct(seed, followerTwo, followerDBTypes, false, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	if err = randomize.Struct(seed, subscriptionTwo, subscriptionDBTypes, false, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = followerOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = subscriptionOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = followerTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = subscriptionTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	count, err := Followers().Count(ctx, tx)
+	count, err := Subscriptions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -299,155 +299,155 @@ func testFollowersCount(t *testing.T) {
 	}
 }
 
-func followerBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *Follower) error {
-	*o = Follower{}
+func subscriptionBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *Subscription) error {
+	*o = Subscription{}
 	return nil
 }
 
-func followerAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *Follower) error {
-	*o = Follower{}
+func subscriptionAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *Subscription) error {
+	*o = Subscription{}
 	return nil
 }
 
-func followerAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *Follower) error {
-	*o = Follower{}
+func subscriptionAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *Subscription) error {
+	*o = Subscription{}
 	return nil
 }
 
-func followerBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Follower) error {
-	*o = Follower{}
+func subscriptionBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Subscription) error {
+	*o = Subscription{}
 	return nil
 }
 
-func followerAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Follower) error {
-	*o = Follower{}
+func subscriptionAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Subscription) error {
+	*o = Subscription{}
 	return nil
 }
 
-func followerBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Follower) error {
-	*o = Follower{}
+func subscriptionBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Subscription) error {
+	*o = Subscription{}
 	return nil
 }
 
-func followerAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Follower) error {
-	*o = Follower{}
+func subscriptionAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Subscription) error {
+	*o = Subscription{}
 	return nil
 }
 
-func followerBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Follower) error {
-	*o = Follower{}
+func subscriptionBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Subscription) error {
+	*o = Subscription{}
 	return nil
 }
 
-func followerAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Follower) error {
-	*o = Follower{}
+func subscriptionAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Subscription) error {
+	*o = Subscription{}
 	return nil
 }
 
-func testFollowersHooks(t *testing.T) {
+func testSubscriptionsHooks(t *testing.T) {
 	t.Parallel()
 
 	var err error
 
 	ctx := context.Background()
-	empty := &Follower{}
-	o := &Follower{}
+	empty := &Subscription{}
+	o := &Subscription{}
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, followerDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize Follower object: %s", err)
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, false); err != nil {
+		t.Errorf("Unable to randomize Subscription object: %s", err)
 	}
 
-	AddFollowerHook(boil.BeforeInsertHook, followerBeforeInsertHook)
+	AddSubscriptionHook(boil.BeforeInsertHook, subscriptionBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeInsertHook function to empty object, but got: %#v", o)
 	}
-	followerBeforeInsertHooks = []FollowerHook{}
+	subscriptionBeforeInsertHooks = []SubscriptionHook{}
 
-	AddFollowerHook(boil.AfterInsertHook, followerAfterInsertHook)
+	AddSubscriptionHook(boil.AfterInsertHook, subscriptionAfterInsertHook)
 	if err = o.doAfterInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterInsertHook function to empty object, but got: %#v", o)
 	}
-	followerAfterInsertHooks = []FollowerHook{}
+	subscriptionAfterInsertHooks = []SubscriptionHook{}
 
-	AddFollowerHook(boil.AfterSelectHook, followerAfterSelectHook)
+	AddSubscriptionHook(boil.AfterSelectHook, subscriptionAfterSelectHook)
 	if err = o.doAfterSelectHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterSelectHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterSelectHook function to empty object, but got: %#v", o)
 	}
-	followerAfterSelectHooks = []FollowerHook{}
+	subscriptionAfterSelectHooks = []SubscriptionHook{}
 
-	AddFollowerHook(boil.BeforeUpdateHook, followerBeforeUpdateHook)
+	AddSubscriptionHook(boil.BeforeUpdateHook, subscriptionBeforeUpdateHook)
 	if err = o.doBeforeUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpdateHook function to empty object, but got: %#v", o)
 	}
-	followerBeforeUpdateHooks = []FollowerHook{}
+	subscriptionBeforeUpdateHooks = []SubscriptionHook{}
 
-	AddFollowerHook(boil.AfterUpdateHook, followerAfterUpdateHook)
+	AddSubscriptionHook(boil.AfterUpdateHook, subscriptionAfterUpdateHook)
 	if err = o.doAfterUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpdateHook function to empty object, but got: %#v", o)
 	}
-	followerAfterUpdateHooks = []FollowerHook{}
+	subscriptionAfterUpdateHooks = []SubscriptionHook{}
 
-	AddFollowerHook(boil.BeforeDeleteHook, followerBeforeDeleteHook)
+	AddSubscriptionHook(boil.BeforeDeleteHook, subscriptionBeforeDeleteHook)
 	if err = o.doBeforeDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeDeleteHook function to empty object, but got: %#v", o)
 	}
-	followerBeforeDeleteHooks = []FollowerHook{}
+	subscriptionBeforeDeleteHooks = []SubscriptionHook{}
 
-	AddFollowerHook(boil.AfterDeleteHook, followerAfterDeleteHook)
+	AddSubscriptionHook(boil.AfterDeleteHook, subscriptionAfterDeleteHook)
 	if err = o.doAfterDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterDeleteHook function to empty object, but got: %#v", o)
 	}
-	followerAfterDeleteHooks = []FollowerHook{}
+	subscriptionAfterDeleteHooks = []SubscriptionHook{}
 
-	AddFollowerHook(boil.BeforeUpsertHook, followerBeforeUpsertHook)
+	AddSubscriptionHook(boil.BeforeUpsertHook, subscriptionBeforeUpsertHook)
 	if err = o.doBeforeUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpsertHook function to empty object, but got: %#v", o)
 	}
-	followerBeforeUpsertHooks = []FollowerHook{}
+	subscriptionBeforeUpsertHooks = []SubscriptionHook{}
 
-	AddFollowerHook(boil.AfterUpsertHook, followerAfterUpsertHook)
+	AddSubscriptionHook(boil.AfterUpsertHook, subscriptionAfterUpsertHook)
 	if err = o.doAfterUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpsertHook function to empty object, but got: %#v", o)
 	}
-	followerAfterUpsertHooks = []FollowerHook{}
+	subscriptionAfterUpsertHooks = []SubscriptionHook{}
 }
 
-func testFollowersInsert(t *testing.T) {
+func testSubscriptionsInsert(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Follower{}
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := &Subscription{}
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -457,7 +457,7 @@ func testFollowersInsert(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Followers().Count(ctx, tx)
+	count, err := Subscriptions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -467,24 +467,24 @@ func testFollowersInsert(t *testing.T) {
 	}
 }
 
-func testFollowersInsertWhitelist(t *testing.T) {
+func testSubscriptionsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Follower{}
-	if err = randomize.Struct(seed, o, followerDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := &Subscription{}
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Insert(ctx, tx, boil.Whitelist(followerColumnsWithoutDefault...)); err != nil {
+	if err = o.Insert(ctx, tx, boil.Whitelist(subscriptionColumnsWithoutDefault...)); err != nil {
 		t.Error(err)
 	}
 
-	count, err := Followers().Count(ctx, tx)
+	count, err := Subscriptions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -494,14 +494,14 @@ func testFollowersInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testFollowersReload(t *testing.T) {
+func testSubscriptionsReload(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Follower{}
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := &Subscription{}
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -516,14 +516,14 @@ func testFollowersReload(t *testing.T) {
 	}
 }
 
-func testFollowersReloadAll(t *testing.T) {
+func testSubscriptionsReloadAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Follower{}
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := &Subscription{}
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -533,21 +533,21 @@ func testFollowersReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := FollowerSlice{o}
+	slice := SubscriptionSlice{o}
 
 	if err = slice.ReloadAll(ctx, tx); err != nil {
 		t.Error(err)
 	}
 }
 
-func testFollowersSelect(t *testing.T) {
+func testSubscriptionsSelect(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Follower{}
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := &Subscription{}
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -557,7 +557,7 @@ func testFollowersSelect(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice, err := Followers().All(ctx, tx)
+	slice, err := Subscriptions().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -568,25 +568,25 @@ func testFollowersSelect(t *testing.T) {
 }
 
 var (
-	followerDBTypes = map[string]string{`ID`: `text`, `UserID`: `text`, `FollowingID`: `text`, `Status`: `integer`, `CreatedAt`: `timestamp with time zone`, `UpdatedAt`: `timestamp with time zone`}
-	_               = bytes.MinRead
+	subscriptionDBTypes = map[string]string{`ID`: `text`, `UserID`: `text`, `SubscriberID`: `text`, `Status`: `integer`, `CreatedAt`: `timestamp with time zone`, `UpdatedAt`: `timestamp with time zone`}
+	_                   = bytes.MinRead
 )
 
-func testFollowersUpdate(t *testing.T) {
+func testSubscriptionsUpdate(t *testing.T) {
 	t.Parallel()
 
-	if 0 == len(followerPrimaryKeyColumns) {
+	if 0 == len(subscriptionPrimaryKeyColumns) {
 		t.Skip("Skipping table with no primary key columns")
 	}
-	if len(followerAllColumns) == len(followerPrimaryKeyColumns) {
+	if len(subscriptionAllColumns) == len(subscriptionPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Follower{}
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := &Subscription{}
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -596,7 +596,7 @@ func testFollowersUpdate(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Followers().Count(ctx, tx)
+	count, err := Subscriptions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -605,8 +605,8 @@ func testFollowersUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	if rowsAff, err := o.Update(ctx, tx, boil.Infer()); err != nil {
@@ -616,18 +616,18 @@ func testFollowersUpdate(t *testing.T) {
 	}
 }
 
-func testFollowersSliceUpdateAll(t *testing.T) {
+func testSubscriptionsSliceUpdateAll(t *testing.T) {
 	t.Parallel()
 
-	if len(followerAllColumns) == len(followerPrimaryKeyColumns) {
+	if len(subscriptionAllColumns) == len(subscriptionPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Follower{}
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := &Subscription{}
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -637,7 +637,7 @@ func testFollowersSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Followers().Count(ctx, tx)
+	count, err := Subscriptions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -646,18 +646,18 @@ func testFollowersSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, followerDBTypes, true, followerPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	if err = randomize.Struct(seed, o, subscriptionDBTypes, true, subscriptionPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
-	if strmangle.StringSliceMatch(followerAllColumns, followerPrimaryKeyColumns) {
-		fields = followerAllColumns
+	if strmangle.StringSliceMatch(subscriptionAllColumns, subscriptionPrimaryKeyColumns) {
+		fields = subscriptionAllColumns
 	} else {
 		fields = strmangle.SetComplement(
-			followerAllColumns,
-			followerPrimaryKeyColumns,
+			subscriptionAllColumns,
+			subscriptionPrimaryKeyColumns,
 		)
 	}
 
@@ -675,7 +675,7 @@ func testFollowersSliceUpdateAll(t *testing.T) {
 		}
 	}
 
-	slice := FollowerSlice{o}
+	slice := SubscriptionSlice{o}
 	if rowsAff, err := slice.UpdateAll(ctx, tx, updateMap); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
@@ -683,29 +683,29 @@ func testFollowersSliceUpdateAll(t *testing.T) {
 	}
 }
 
-func testFollowersUpsert(t *testing.T) {
+func testSubscriptionsUpsert(t *testing.T) {
 	t.Parallel()
 
-	if len(followerAllColumns) == len(followerPrimaryKeyColumns) {
+	if len(subscriptionAllColumns) == len(subscriptionPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
 	// Attempt the INSERT side of an UPSERT
-	o := Follower{}
-	if err = randomize.Struct(seed, &o, followerDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	o := Subscription{}
+	if err = randomize.Struct(seed, &o, subscriptionDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 	if err = o.Upsert(ctx, tx, false, nil, boil.Infer(), boil.Infer()); err != nil {
-		t.Errorf("Unable to upsert Follower: %s", err)
+		t.Errorf("Unable to upsert Subscription: %s", err)
 	}
 
-	count, err := Followers().Count(ctx, tx)
+	count, err := Subscriptions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -714,15 +714,15 @@ func testFollowersUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &o, followerDBTypes, false, followerPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Follower struct: %s", err)
+	if err = randomize.Struct(seed, &o, subscriptionDBTypes, false, subscriptionPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
 	}
 
 	if err = o.Upsert(ctx, tx, true, nil, boil.Infer(), boil.Infer()); err != nil {
-		t.Errorf("Unable to upsert Follower: %s", err)
+		t.Errorf("Unable to upsert Subscription: %s", err)
 	}
 
-	count, err = Followers().Count(ctx, tx)
+	count, err = Subscriptions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
