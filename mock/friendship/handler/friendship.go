@@ -3,6 +3,7 @@ package mockHandler
 import (
 	"context"
 
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -10,9 +11,9 @@ type MockConnectFriendshipHandler struct {
 	mock.Mock
 }
 
-func (m *MockConnectFriendshipHandler) Handle(ctx context.Context, userEmail, friendEmail string) (string, error) {
+func (m *MockConnectFriendshipHandler) Handle(ctx context.Context, userEmail, friendEmail string) (domain.Friendship, error) {
 	args := m.Called(ctx, userEmail, friendEmail)
-	return args.String(0), args.Error(1)
+	return args.Get(0).(domain.Friendship), args.Error(1)
 }
 
 type MockListFriendsHandler struct {

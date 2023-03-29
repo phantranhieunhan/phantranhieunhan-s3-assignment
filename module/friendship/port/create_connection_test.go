@@ -8,10 +8,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/phantranhieunhan/s3-assignment/common"
 	mockHandler "github.com/phantranhieunhan/s3-assignment/mock/friendship/handler"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/app"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
+
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -21,7 +23,10 @@ type TestCase_ConnectFriendship struct {
 	hasFinalErr bool
 	bodyRequest ConnectFriendshipReq
 
-	commandHandlerError error
+	connectFriendshipHandlerError error
+	connectFriendshipData         domain.Friendship
+
+	subscribeUserHandlerError error
 
 	hasValidateErr bool
 }
@@ -30,13 +35,16 @@ func TestConnectFriendship(t *testing.T) {
 	t.Parallel()
 
 	mockConnectFriendshipHandler := new(mockHandler.MockConnectFriendshipHandler)
+	mockSubscribeUserHandler := new(mockHandler.MockSubscribeUserHandler)
 	commandHandlerErr := errors.New("command handler error")
+
+	req := ConnectFriendshipReq{
+		Friends: []string{"lisa@example.com", "common@example.com"},
+	}
 	tcs := []TestCase_ConnectFriendship{
 		{
-			name: "successful",
-			bodyRequest: ConnectFriendshipReq{
-				Friends: []string{"lisa@example.com", "common@example.com"},
-			},
+			name:        "successful",
+			bodyRequest: req,
 		},
 		{
 			name: "fail because request emails is not 2",
@@ -55,24 +63,54 @@ func TestConnectFriendship(t *testing.T) {
 			hasFinalErr:    true,
 		},
 		{
-			name: "fail because command handle has error",
+			name: "fail because request emails is invalid",
 			bodyRequest: ConnectFriendshipReq{
-				Friends: []string{"lisa@example.com", "common@example.com"},
+				Friends: []string{"lisa@example.com", "lisa-example.com"},
 			},
-			commandHandlerError: commandHandlerErr,
-			hasFinalErr:         true,
+			hasValidateErr: true,
+			hasFinalErr:    true,
+		},
+		{
+			name:                          "fail because connect friendship handle has error",
+			bodyRequest:                   req,
+			connectFriendshipHandlerError: commandHandlerErr,
+			hasFinalErr:                   true,
+		},
+		{
+			name:        "fail because subscribe user handle handle has error",
+			bodyRequest: req,
+			connectFriendshipData: domain.Friendship{
+				UserID:   req.Friends[0],
+				FriendID: req.Friends[1],
+			},
+			subscribeUserHandlerError: commandHandlerErr,
+			hasFinalErr:               true,
 		},
 	}
 
 	for _, tc := range tcs {
 		dataReq := tc.bodyRequest
 		if !tc.hasValidateErr {
-			mockConnectFriendshipHandler.On("Handle", mock.Anything, dataReq.Friends[0], dataReq.Friends[1]).Once().Return("", tc.commandHandlerError)
+			mockConnectFriendshipHandler.On("Handle", mock.Anything, dataReq.Friends[0], dataReq.Friends[1]).Once().Return(tc.connectFriendshipData, tc.connectFriendshipHandlerError)
+			if tc.connectFriendshipHandlerError == nil {
+				fr := tc.connectFriendshipData
+				mockSubscribeUserHandler.On("HandleWithSubscription", mock.Anything, domain.Subscriptions{
+					domain.Subscription{
+						UserID:       fr.UserID,
+						SubscriberID: fr.FriendID,
+					},
+					domain.Subscription{
+						UserID:       fr.FriendID,
+						SubscriberID: fr.UserID,
+					},
+				}).Once().Return(tc.subscribeUserHandlerError)
+			}
 		}
 
 		server := NewServer(app.Application{
 			Commands: app.Commands{
 				ConnectFriendship: mockConnectFriendshipHandler,
+				SubscribeUser:     mockSubscribeUserHandler,
 			},
 		})
 		router := gin.Default()
@@ -96,7 +134,7 @@ func TestConnectFriendship(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, common.SimpleSuccessResponse(nil), resBody)
 		}
-
+		mock.AssertExpectationsForObjects(t, mockConnectFriendshipHandler, mockSubscribeUserHandler)
 	}
 
 }

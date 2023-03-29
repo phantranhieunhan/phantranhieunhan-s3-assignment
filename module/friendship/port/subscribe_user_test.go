@@ -49,9 +49,19 @@ func TestSubscribeUser(t *testing.T) {
 			hasFinalErr:    true,
 		},
 		{
-			name: "fail because request emails is the same",
+			name: "fail because request emails is invalid",
+			bodyRequest: SubscribeUserReq{
+				Requestor: "lisa-example.com",
+				Target:    "john@example.com",
+			},
+			hasValidateErr: true,
+			hasFinalErr:    true,
+		},
+		{
+			name: "fail because target emails is invalid",
 			bodyRequest: SubscribeUserReq{
 				Requestor: "lisa@example.com",
+				Target:    "john-example.com",
 			},
 			hasValidateErr: true,
 			hasFinalErr:    true,

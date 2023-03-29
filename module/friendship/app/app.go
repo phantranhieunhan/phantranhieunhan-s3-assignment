@@ -14,7 +14,7 @@ type Application struct {
 
 type Commands struct {
 	ConnectFriendship interface {
-		Handle(ctx context.Context, userEmail string, friendEmail string) (string, error)
+		Handle(ctx context.Context, userEmail string, friendEmail string) (domain.Friendship, error)
 	}
 	SubscribeUser interface {
 		Handle(ctx context.Context, payload payload.SubscriberUserPayloads) error

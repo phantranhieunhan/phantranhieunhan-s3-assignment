@@ -49,6 +49,15 @@ func TestBlockUpdatesUser(t *testing.T) {
 			hasFinalErr:    true,
 		},
 		{
+			name: "fail because target email invalid",
+			bodyRequest: BlockUpdatesUserReq{
+				Target:    "lisa-example.com",
+				Requestor: "john@example.com",
+			},
+			hasValidateErr: true,
+			hasFinalErr:    true,
+		},
+		{
 			name: "fail because requestor email is not provided",
 			bodyRequest: BlockUpdatesUserReq{
 				Target: "lisa@example.com",
@@ -57,9 +66,19 @@ func TestBlockUpdatesUser(t *testing.T) {
 			hasFinalErr:    true,
 		},
 		{
+			name: "fail because requestor email invalid",
+			bodyRequest: BlockUpdatesUserReq{
+				Requestor: "lisa-example.com",
+				Target:    "john@example.com",
+			},
+			hasValidateErr: true,
+			hasFinalErr:    true,
+		},
+		{
 			name: "fail because command handle has error",
 			bodyRequest: BlockUpdatesUserReq{
-				Target: "lisa@example.com",
+				Target:    "lisa@example.com",
+				Requestor: "john@example.com",
 			},
 			commandHandlerError: commandHandlerErr,
 			hasFinalErr:         true,
