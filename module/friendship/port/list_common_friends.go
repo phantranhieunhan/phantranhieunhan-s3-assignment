@@ -23,6 +23,9 @@ func (l ListCommonFriendsReq) validate() error {
 		if err := common.ValidateRequired(friend, fmt.Sprintf("friend %d", i)); err != nil {
 			return err
 		}
+		if err := common.ValidateEmail(friend); err != nil {
+			return err
+		}
 	}
 	return nil
 }

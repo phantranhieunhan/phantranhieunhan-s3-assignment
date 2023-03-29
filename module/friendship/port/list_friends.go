@@ -14,7 +14,15 @@ type ListFriendsReq struct {
 }
 
 func (c ListFriendsReq) validate() error {
-	return common.ValidateRequired(c.Email, "email")
+	if err := common.ValidateRequired(c.Email, "email"); err != nil {
+		return err
+	}
+
+	if err := common.ValidateEmail(c.Email); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type ListFriendsRes struct {
