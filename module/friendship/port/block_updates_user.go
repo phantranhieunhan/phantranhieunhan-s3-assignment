@@ -20,9 +20,17 @@ func (l BlockUpdatesUserReq) validate() error {
 	if err := common.ValidateRequired(l.Requestor, constant.REQUESTOR); err != nil {
 		return err
 	}
+	if err := common.ValidateEmail(l.Requestor); err != nil {
+		return err
+	}
+
 	if err := common.ValidateRequired(l.Target, constant.TARGET); err != nil {
 		return err
 	}
+	if err := common.ValidateEmail(l.Target); err != nil {
+		return err
+	}
+
 	return nil
 }
 

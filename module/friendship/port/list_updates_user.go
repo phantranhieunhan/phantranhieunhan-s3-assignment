@@ -15,7 +15,15 @@ type ListUpdatesUserReq struct {
 }
 
 func (c ListUpdatesUserReq) validate() error {
-	return common.ValidateRequired(c.Sender, "sender")
+	if err := common.ValidateRequired(c.Sender, "sender"); err != nil {
+		return err
+	}
+
+	if err := common.ValidateEmail(c.Sender); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type ListUpdatesUserRes struct {
