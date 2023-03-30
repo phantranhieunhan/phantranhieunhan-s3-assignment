@@ -13,6 +13,7 @@ type Application struct {
 type Commands struct {
 	ConnectFriendship command.ConnectFriendshipHandler
 	SubscribeUser     command.SubscribeUserHandler
+	BlockUpdatesUser  command.BlockUpdatesUserHandler
 }
 
 type Queries struct {

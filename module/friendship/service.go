@@ -20,6 +20,7 @@ func New(r *gin.Engine, db postgres.Database) {
 		Commands: app.Commands{
 			ConnectFriendship: command.NewConnectFriendshipHandler(friendshipRepo, userRepo, db),
 			SubscribeUser:     command.NewSubscribeUserHandler(friendshipRepo, userRepo, subRepo, db),
+			BlockUpdatesUser:  command.NewBlockUpdatesUserHandler(friendshipRepo, userRepo, subRepo, db),
 		},
 		Queries: app.Queries{
 			ListFriends:       query.NewListFriendsHandler(friendshipRepo, userRepo),

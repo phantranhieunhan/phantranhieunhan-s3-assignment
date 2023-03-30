@@ -32,8 +32,9 @@ func (s SubscriptionStatus) IsNoneExisted() bool {
 }
 
 var (
-	ErrCannotCreateSubscription = errors.New("cannot create subscription")
-	ErrNeedAtLeastTwoEmails     = errors.New("need at least two emails")
+	ErrCannotCreateSubscription          = errors.New("cannot create subscription")
+	ErrNeedAtLeastTwoEmails              = errors.New("need at least two emails")
+	ErrCannotBlockUpdatesFromBlockedUser = errors.New("cannot block updates from blocked user")
 )
 
 type Subscription struct {
@@ -61,4 +62,5 @@ type SubscriptionRepo interface {
 	Create(ctx context.Context, sub Subscription) (string, error)
 	GetSubscription(ctx context.Context, ss Subscriptions) (Subscriptions, error)
 	UpdateStatus(ctx context.Context, id string, status SubscriptionStatus) error
+	UnsertSubscription(ctx context.Context, sub Subscription) error
 }

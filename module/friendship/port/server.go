@@ -18,5 +18,6 @@ func NewServer(r *gin.Engine, app app.Application) Server {
 
 	subscription := r.Group("subscription")
 	subscription.POST("subscribe", s.SubscribeUser)
+	subscription.POST("block", s.BlockUpdatesUser)
 	return s
 }

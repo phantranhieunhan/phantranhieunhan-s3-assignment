@@ -13,21 +13,15 @@ const (
 )
 
 func (f FriendshipStatus) CanConnect() bool {
-	switch f {
-	case FriendshipStatusUnfriended:
-		return true
-	default:
-		return false
-	}
+	return f == FriendshipStatusUnfriended
+}
+
+func (f FriendshipStatus) CanBlockUser() bool {
+	return f == FriendshipStatusUnfriended
 }
 
 func (f FriendshipStatus) CanNotSubscribe() bool {
-	switch f {
-	case FriendshipStatusBlocked:
-		return true
-	default:
-		return false
-	}
+	return f == FriendshipStatusBlocked
 }
 
 type Friendship struct {
@@ -39,6 +33,14 @@ type Friendship struct {
 
 func (r Friendship) DomainName() string {
 	return "Friendship"
+}
+
+func (r Friendship) FriendshipWithBlock(userID, friendID string) Friendship {
+	return Friendship{
+		UserID:   userID,
+		FriendID: friendID,
+		Status:   FriendshipStatusBlocked,
+	}
 }
 
 type Friendships []Friendship
