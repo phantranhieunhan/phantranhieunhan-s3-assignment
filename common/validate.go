@@ -1,8 +1,12 @@
 package common
 
 import (
+	"errors"
+	"net/mail"
 	"reflect"
 )
+
+var ErrValidateEmail = errors.New("email is not valid")
 
 func ValidateRequired(value interface{}, fieldName string) error {
 	vType := reflect.TypeOf(value)
@@ -32,7 +36,18 @@ func ValidateRequired(value interface{}, fieldName string) error {
 	}
 
 	if isErr {
-		ErrInvalidRequest(nil, fieldName)
+		return ErrInvalidRequest(nil, fieldName)
 	}
 	return nil
+}
+
+func ValidateEmail(address string) error {
+	_, err := mail.ParseAddress(address)
+
+	if err != nil {
+		return ErrInvalidRequest(ErrValidateEmail, "")
+	}
+
+	return nil
+
 }

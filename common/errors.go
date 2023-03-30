@@ -1,6 +1,7 @@
 package common
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -13,6 +14,9 @@ func ErrInvalidRequest(err error, fieldName string) *AppError {
 	msg := "invalid request"
 	if fieldName != "" {
 		msg = fmt.Sprintf("%s for %s", msg, fieldName)
+	}
+	if err == nil {
+		err = errors.New(msg)
 	}
 	return NewErrorResponse(err, msg, err.Error(), "ErrInvalidRequest")
 }

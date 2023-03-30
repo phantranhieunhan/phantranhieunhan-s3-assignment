@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/phantranhieunhan/s3-assignment/common"
 	"github.com/phantranhieunhan/s3-assignment/common/logger"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/port/constant"
 )
 
@@ -23,6 +24,9 @@ func (c ConnectFriendshipReq) validate() error {
 		if err := common.ValidateRequired(friend, fmt.Sprintf("friend %d", i)); err != nil {
 			return err
 		}
+		if err := common.ValidateEmail(friend); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -32,18 +36,37 @@ func (s *Server) ConnectFriendship(c *gin.Context) {
 	var err error
 	if err = c.ShouldBind(&req); err != nil {
 		logger.Error("ConnectFriendship.ShouldBind: ", err)
-		panic(common.ErrInvalidRequest(err, constant.FRIENDS))
+		common.HttpErrorHandler(c, common.ErrInvalidRequest(err, constant.FRIENDS))
+		return
 	}
 
 	if err = req.validate(); err != nil {
 		logger.Error("ConnectFriendship.Validate: ", err)
-		panic(err)
+		common.HttpErrorHandler(c, err)
+		return
 	}
 
-	_, err = s.app.Commands.ConnectFriendship.Handle(c.Request.Context(), req.Friends[0], req.Friends[1])
+	f, err := s.app.Commands.ConnectFriendship.Handle(c.Request.Context(), req.Friends[0], req.Friends[1])
 	if err != nil {
-		logger.Error("ConnectFriendship.Create: ", err)
-		panic(err)
+		logger.Error("ConnectFriendship.Handle: ", err)
+		common.HttpErrorHandler(c, err)
+		return
+	}
+
+	err = s.app.Commands.SubscribeUser.HandleWithSubscription(c.Request.Context(), domain.Subscriptions{
+		domain.Subscription{
+			UserID:       f.UserID,
+			SubscriberID: f.FriendID,
+		},
+		domain.Subscription{
+			UserID:       f.FriendID,
+			SubscriberID: f.UserID,
+		},
+	})
+	if err != nil {
+		logger.Error("ConnectFriendship.SubscribeUser.HandleWithSubscription: ", err)
+		common.HttpErrorHandler(c, err)
+		return
 	}
 
 	c.JSON(http.StatusOK, common.SimpleSuccessResponse(nil))

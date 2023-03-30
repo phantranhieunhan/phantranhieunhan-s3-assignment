@@ -8,23 +8,13 @@ import (
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 )
 
-type ConnectFriendshipRepo interface {
-	Create(ctx context.Context, d domain.Friendship) (string, error)
-	GetFriendshipByUserIDs(ctx context.Context, userID, friendID string) (domain.Friendship, error)
-	UpdateStatus(ctx context.Context, id string, status domain.FriendshipStatus) error
-}
-
-type UserRepo interface {
-	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error)
-}
-
 type ConnectFriendshipHandler struct {
-	friendshipRepo ConnectFriendshipRepo
-	userRepo       UserRepo
+	friendshipRepo domain.FriendshipRepo
+	userRepo       domain.UserRepo
 	transactor     Transactor
 }
 
-func NewConnectFriendshipHandler(repo ConnectFriendshipRepo, userRepo UserRepo, transactor Transactor) ConnectFriendshipHandler {
+func NewConnectFriendshipHandler(repo domain.FriendshipRepo, userRepo domain.UserRepo, transactor Transactor) ConnectFriendshipHandler {
 	return ConnectFriendshipHandler{
 		friendshipRepo: repo,
 		userRepo:       userRepo,
@@ -32,15 +22,15 @@ func NewConnectFriendshipHandler(repo ConnectFriendshipRepo, userRepo UserRepo, 
 	}
 }
 
-func (h ConnectFriendshipHandler) Handle(ctx context.Context, userEmail, friendEmail string) (string, error) {
+func (h ConnectFriendshipHandler) Handle(ctx context.Context, userEmail, friendEmail string) (domain.Friendship, error) {
 	userIDs, err := h.userRepo.GetUserIDsByEmails(ctx, []string{userEmail, friendEmail})
 	if err != nil {
+		logger.Errorf("userRepo.GetUserIDsByEmails %w", err)
 		if err == domain.ErrNotFoundUserByEmail {
-			return "", common.ErrInvalidRequest(err, "emails")
+			return domain.Friendship{}, common.ErrInvalidRequest(err, "emails")
 		}
-		return "", common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
+		return domain.Friendship{}, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
 	}
-	var id string
 	d := domain.Friendship{
 		Status:   domain.FriendshipStatusFriended,
 		UserID:   userIDs[userEmail],
@@ -55,7 +45,7 @@ func (h ConnectFriendshipHandler) Handle(ctx context.Context, userEmail, friendE
 		}
 
 		if err == domain.ErrRecordNotFound {
-			id, err = h.friendshipRepo.Create(ctx, d)
+			d.Id, err = h.friendshipRepo.Create(ctx, d)
 			if err != nil {
 				logger.Errorf("repo.Create %w", err)
 				return common.ErrCannotCreateEntity(d.DomainName(), err)
@@ -69,10 +59,14 @@ func (h ConnectFriendshipHandler) Handle(ctx context.Context, userEmail, friendE
 				logger.Errorf("repo.UpdateStatus %w", err)
 				return common.ErrCannotUpdateEntity(d.DomainName(), err)
 			}
-			id = f.Id
+			d.Id = f.Id
 		}
-		return err
+		return nil
 	})
 
-	return id, err
+	if err != nil {
+		return domain.Friendship{}, err
+	}
+
+	return d, err
 }
