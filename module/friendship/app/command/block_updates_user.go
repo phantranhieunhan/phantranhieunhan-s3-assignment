@@ -82,11 +82,9 @@ func (b BlockUpdatesUserHandler) blockUser(ctx context.Context, friendshipID, re
 			logger.Errorf("repo.Create %w", err)
 			return common.ErrCannotCreateEntity(d.DomainName(), err)
 		}
-	} else {
-		if err := b.friendshipRepo.UpdateStatus(ctx, friendshipID, domain.FriendshipStatusBlocked); err != nil {
-			logger.Errorf("repo.UpdateStatus %w", err)
-			return common.ErrCannotUpdateEntity(domain.Friendship{}.DomainName(), err)
-		}
+	} else if err := b.friendshipRepo.UpdateStatus(ctx, friendshipID, domain.FriendshipStatusBlocked); err != nil {
+		logger.Errorf("repo.UpdateStatus %w", err)
+		return common.ErrCannotUpdateEntity(domain.Friendship{}.DomainName(), err)
 	}
 
 	return nil
@@ -96,6 +94,7 @@ func (b BlockUpdatesUserHandler) unsubscribeUser(ctx context.Context, requestorI
 	sub := domain.Subscription{UserID: targetID, SubscriberID: requestorID, Status: domain.SubscriptionStatusUnsubscribed}
 	err := b.subscriptionRepo.UnsertSubscription(ctx, sub)
 	if err != nil {
+		logger.Errorf("subscriptionRepo.UnsertSubscription %w", err)
 		return common.ErrCannotUpdateEntity(sub.DomainName(), err)
 	}
 
