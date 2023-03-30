@@ -7,6 +7,7 @@ import (
 	"github.com/phantranhieunhan/s3-assignment/common/adapter/postgres"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/adapter/postgres/convert"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/adapter/postgres/model"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/adapter/postgres/view"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 	"github.com/phantranhieunhan/s3-assignment/pkg/util"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -68,4 +69,24 @@ func (s SubscriptionRepository) GetSubscription(ctx context.Context, ss domain.S
 		return domain.Subscriptions{}, common.ErrDB(err)
 	}
 	return convert.ToSubscriptionsDomain(m), nil
+}
+
+func (s SubscriptionRepository) GetSubscriptionEmailsByUserIDAndStatus(ctx context.Context, id string, status domain.SubscriptionStatus) ([]string, error) {
+	list := make([]view.SubscriberEmail, 0)
+	err := model.NewQuery(
+		qm.Select("u.email as subscriber_email"),
+		qm.From("subscriptions s"),
+		qm.LeftOuterJoin("users u on s.subscriber_id = u.id"),
+		qm.Where("s.user_id = ?", id),
+		qm.And("s.status = ?", status)).Bind(ctx, s.db.Model(ctx), &list)
+	if err != nil {
+		return []string{}, common.ErrDB(err)
+	}
+
+	emails := make([]string, len(list))
+	for i, _ := range emails {
+		emails[i] = list[i].Email
+	}
+
+	return emails, nil
 }

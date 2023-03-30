@@ -25,6 +25,7 @@ func New(r *gin.Engine, db postgres.Database) {
 		Queries: app.Queries{
 			ListFriends:       query.NewListFriendsHandler(friendshipRepo, userRepo),
 			ListCommonFriends: query.NewListCommonFriendsHandler(friendshipRepo, userRepo),
+			ListUpdatesUser:   query.NewListUpdatesUserHandler(subRepo, userRepo),
 		},
 	}
 	port.NewServer(r, application)

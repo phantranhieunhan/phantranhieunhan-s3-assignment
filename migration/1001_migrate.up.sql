@@ -17,7 +17,9 @@ CREATE TABLE public.friendships(
 	status int not null default 0,
     created_at timestamp with time zone NOT null,
     updated_at timestamp with time zone NOT null,
-    CONSTRAINT friendships_pk PRIMARY KEY (id)
+    CONSTRAINT friendships_pk PRIMARY KEY (id),
+    CONSTRAINT friendships_users_userid_pk FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT friendships_users_friendid_pk FOREIGN KEY (friend_id) REFERENCES users(id)
 );
 
 CREATE TABLE public.subscriptions(
@@ -28,7 +30,9 @@ CREATE TABLE public.subscriptions(
 	created_at timestamp with time zone not null,
     updated_at timestamp with time zone not null,
     CONSTRAINT subscription_pk PRIMARY KEY (id),
-    CONSTRAINT user_subscriber_unique UNIQUE (user_id, subscriber_id)
+    CONSTRAINT user_subscriber_unique UNIQUE (user_id, subscriber_id),
+    CONSTRAINT subscriptions_users_userid_pk FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT subscriptions_users_friendid_pk FOREIGN KEY (subscriber_id) REFERENCES users(id)
 );
 
 INSERT INTO public.users

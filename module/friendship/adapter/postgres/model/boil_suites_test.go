@@ -88,7 +88,12 @@ func TestInsert(t *testing.T) {
 
 // TestToOne tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToOne(t *testing.T) {}
+func TestToOne(t *testing.T) {
+	t.Run("FriendshipToUserUsingFriend", testFriendshipToOneUserUsingFriend)
+	t.Run("FriendshipToUserUsingUser", testFriendshipToOneUserUsingUser)
+	t.Run("SubscriptionToUserUsingSubscriber", testSubscriptionToOneUserUsingSubscriber)
+	t.Run("SubscriptionToUserUsingUser", testSubscriptionToOneUserUsingUser)
+}
 
 // TestOneToOne tests cannot be run in parallel
 // or deadlocks can occur.
@@ -96,11 +101,21 @@ func TestOneToOne(t *testing.T) {}
 
 // TestToMany tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToMany(t *testing.T) {}
+func TestToMany(t *testing.T) {
+	t.Run("UserToFriendFriendships", testUserToManyFriendFriendships)
+	t.Run("UserToFriendships", testUserToManyFriendships)
+	t.Run("UserToSubscriberSubscriptions", testUserToManySubscriberSubscriptions)
+	t.Run("UserToSubscriptions", testUserToManySubscriptions)
+}
 
 // TestToOneSet tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToOneSet(t *testing.T) {}
+func TestToOneSet(t *testing.T) {
+	t.Run("FriendshipToUserUsingFriendFriendships", testFriendshipToOneSetOpUserUsingFriend)
+	t.Run("FriendshipToUserUsingFriendships", testFriendshipToOneSetOpUserUsingUser)
+	t.Run("SubscriptionToUserUsingSubscriberSubscriptions", testSubscriptionToOneSetOpUserUsingSubscriber)
+	t.Run("SubscriptionToUserUsingSubscriptions", testSubscriptionToOneSetOpUserUsingUser)
+}
 
 // TestToOneRemove tests cannot be run in parallel
 // or deadlocks can occur.
@@ -116,7 +131,12 @@ func TestOneToOneRemove(t *testing.T) {}
 
 // TestToManyAdd tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToManyAdd(t *testing.T) {}
+func TestToManyAdd(t *testing.T) {
+	t.Run("UserToFriendFriendships", testUserToManyAddOpFriendFriendships)
+	t.Run("UserToFriendships", testUserToManyAddOpFriendships)
+	t.Run("UserToSubscriberSubscriptions", testUserToManyAddOpSubscriberSubscriptions)
+	t.Run("UserToSubscriptions", testUserToManyAddOpSubscriptions)
+}
 
 // TestToManySet tests cannot be run in parallel
 // or deadlocks can occur.
