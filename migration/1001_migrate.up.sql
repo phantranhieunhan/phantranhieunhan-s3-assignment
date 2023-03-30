@@ -4,7 +4,7 @@ CREATE TABLE public.users(
     id text NOT NULL,
     username text NOT NULL,
     password text NOT NULL,
-    email text not null queue, 
+    email text not null, 
     created_at timestamp with time zone NOT null,
     updated_at timestamp with time zone NOT null,
     CONSTRAINT users_pk PRIMARY KEY (id)
