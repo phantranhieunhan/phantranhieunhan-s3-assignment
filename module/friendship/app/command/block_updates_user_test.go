@@ -259,9 +259,5 @@ func (r *RepoMock_TestFriendship_BlockUpdatesUserHandler) prepareUnsubscribeMock
 
 	r.mockSubscriptionRepo.On("UnsertSubscription", ctx, domain.Subscription{
 		UserID: friends[1], SubscriberID: friends[0], Status: domain.SubscriptionStatusUnsubscribed},
-<<<<<<< HEAD
 	).Return("", tc.upsertSubscriptionError).Once()
-=======
-	).Return(tc.upsertSubscriptionError).Once()
->>>>>>> ffac798af129951da02d3b963d3a4af3b82eb56b
 }
