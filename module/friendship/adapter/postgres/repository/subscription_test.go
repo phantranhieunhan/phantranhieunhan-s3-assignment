@@ -31,11 +31,15 @@ func NewSuite(ctx context.Context) Suite {
 }
 
 type SubscriptionTestCase struct {
-	name      string
-	modifySub domain.Subscription
-	isExisted bool
-	isFounded bool
-	err       error
+	name                     string
+	modifySub                domain.Subscription
+	isExisted                bool
+	isFounded                bool
+	mentionedEmails          []string
+	blockedEmails            []string
+	isInvalidMentionedEmails bool
+	result                   []string
+	err                      error
 }
 
 func TestSubscription_Create(t *testing.T) {
@@ -90,7 +94,7 @@ func TestSubscription_Create(t *testing.T) {
 				assert.Empty(t, sub.Id)
 			}
 
-			suite.rollbackSubscription(t, ctx, sub)
+			suite.rollbackSubscription(t, ctx, sub, []string{sub.Id})
 		})
 
 	}
@@ -140,7 +144,7 @@ func TestSubscription_UpdateStatus(t *testing.T) {
 				assert.Equal(t, domain.SubscriptionStatusSubscribed, result[0].Status)
 			}
 
-			suite.rollbackSubscription(t, ctx, sub)
+			suite.rollbackSubscription(t, ctx, sub, []string{sub.Id})
 		})
 	}
 }
@@ -182,7 +186,7 @@ func TestSubscription_UnsertSubscription(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, upsertSub.Status, result[0].Status)
 
-			suite.rollbackSubscription(t, ctx, sub)
+			suite.rollbackSubscription(t, ctx, sub, []string{sub.Id})
 		})
 	}
 }
@@ -225,7 +229,7 @@ func TestGetSubscription(t *testing.T) {
 				assert.Len(t, result, 0)
 			}
 
-			suite.rollbackSubscription(t, ctx, sub)
+			suite.rollbackSubscription(t, ctx, sub, []string{sub.Id})
 		})
 
 	}
@@ -238,8 +242,29 @@ func TestGetSubscriptionEmailsByUserIDAndStatus(t *testing.T) {
 
 	cs := []SubscriptionTestCase{
 		{
-			name:      "successful",
+			name:      "successful without mentioned emails",
 			isFounded: true,
+		},
+		{
+			name:            "successful with valid mentioned emails",
+			isFounded:       true,
+			mentionedEmails: []string{"lisa@example.com"},
+			result:          []string{"lisa@example.com"},
+		},
+		{
+			name:            "successful with block mentioned emails",
+			isFounded:       true,
+			mentionedEmails: []string{"lisa@example.com", "andy@example.com"},
+			blockedEmails:   []string{"andy@example.com"},
+			result:          []string{"lisa@example.com"},
+		},
+		{
+			name:                     "successful with invalid mentioned emails",
+			isFounded:                true,
+			mentionedEmails:          []string{"lisa@example.com", "andy@example.com"},
+			isInvalidMentionedEmails: true, // none existed
+			blockedEmails:            []string{"andy@example.com"},
+			result:                   []string{},
 		},
 		{
 			name: "not found",
@@ -247,10 +272,21 @@ func TestGetSubscriptionEmailsByUserIDAndStatus(t *testing.T) {
 	}
 	for _, tc := range cs {
 		t.Run(tc.name, func(t *testing.T) {
+			emails := []string{}
+			if tc.isInvalidMentionedEmails {
+				emails = append(emails, util.GenUUID()+"@example.com")
+			} else {
+				emails = append(emails, tc.mentionedEmails...)
+			}
+
+			emails = append(emails, tc.blockedEmails...)
+			mapEmailUser := suite.initialUsers(t, ctx, emails)
+
+			subIds := make([]string, 0)
 			sub := domain.Subscription{
 				UserID:       util.GenUUID(),
 				SubscriberID: util.GenUUID(),
-				Status:       domain.SubscriptionStatusUnsubscribed,
+				Status:       domain.SubscriptionStatusSubscribed,
 			}
 			suite.prepareSubscription(t, ctx, sub)
 			var err error
@@ -259,17 +295,44 @@ func TestGetSubscriptionEmailsByUserIDAndStatus(t *testing.T) {
 				id, err = repo.Create(ctx, sub)
 				assert.NoError(t, err)
 				sub.Id = id
+				subIds = append(subIds, id)
+			}
+			mentionedEmail := make([]string, 0)
+			if len(tc.mentionedEmails) > 0 {
+				for _, email := range tc.mentionedEmails {
+					newEmail := mapEmailUser[email].Email
+					if newEmail != "" {
+						mentionedEmail = append(mentionedEmail, newEmail)
+					}
+				}
 			}
 
-			result, err := repo.GetSubscriptionEmailsByUserIDAndStatus(ctx, sub.UserID, domain.SubscriptionStatusUnsubscribed)
+			if len(tc.blockedEmails) > 0 {
+				for _, email := range tc.blockedEmails {
+					id, err = repo.UnsertSubscription(ctx, domain.Subscription{
+						UserID:       sub.UserID,
+						SubscriberID: mapEmailUser[email].ID,
+						Status:       domain.SubscriptionStatusUnsubscribed,
+					})
+					assert.NoError(t, err)
+					subIds = append(subIds, id)
+				}
+			}
+
+			result, err := repo.GetSubscriptionEmailsByUserIDAndEmails(ctx, sub.UserID, mentionedEmail)
 			assert.NoError(t, err)
 			if tc.isFounded {
-				assert.Len(t, result, 1)
+				assert.Equal(t, len(tc.result)+1, len(result))
+				assert.True(t, util.IsContain(result, sub.SubscriberID+"@example.com"))
+
+				for _, v := range tc.result {
+					assert.True(t, util.IsContain(result, mapEmailUser[v].ID+v))
+				}
 			} else {
 				assert.Len(t, result, 0)
 			}
 
-			suite.rollbackSubscription(t, ctx, sub)
+			suite.rollbackSubscription(t, ctx, sub, subIds)
 		})
 
 	}
@@ -292,14 +355,30 @@ func (g *Suite) prepareSubscription(t *testing.T, ctx context.Context, sub domai
 	assert.NoError(t, err)
 }
 
-func (g *Suite) rollbackSubscription(t *testing.T, ctx context.Context, sub domain.Subscription) {
-	db := g.db.Model(ctx)
-	if sub.Id != "" {
-		sub2 := &model.Subscription{
-			ID: sub.Id,
-		}
-		_, err := sub2.Delete(ctx, db)
+func (g *Suite) initialUsers(t *testing.T, ctx context.Context, emails []string) map[string]model.User {
+	emails = util.RemoveDuplicates(emails)
+	result := make(map[string]model.User, 0)
+	for _, email := range emails {
+		randString := util.GenUUID()
+		user := model.User{ID: randString, Email: randString + email}
+		err := user.Insert(ctx, g.db.Model(ctx), boil.Infer())
 		assert.NoError(t, err)
+		result[email] = user
+	}
+	return result
+}
+
+func (g *Suite) rollbackSubscription(t *testing.T, ctx context.Context, sub domain.Subscription, subIds []string) {
+	db := g.db.Model(ctx)
+	ids := util.RemoveDuplicates(subIds)
+	if len(ids) > 0 {
+		for _, id := range ids {
+			sub2 := &model.Subscription{
+				ID: id,
+			}
+			_, err := sub2.Delete(ctx, db)
+			assert.NoError(t, err)
+		}
 	}
 
 	users := &model.UserSlice{

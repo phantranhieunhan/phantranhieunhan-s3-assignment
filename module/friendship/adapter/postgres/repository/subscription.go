@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/phantranhieunhan/s3-assignment/common"
 	"github.com/phantranhieunhan/s3-assignment/common/adapter/postgres"
@@ -76,22 +78,29 @@ func (s SubscriptionRepository) GetSubscription(ctx context.Context, ss domain.S
 	return convert.ToSubscriptionsDomain(m), nil
 }
 
-func (s SubscriptionRepository) GetSubscriptionEmailsByUserIDAndStatus(ctx context.Context, id string, status domain.SubscriptionStatus) ([]string, error) {
+func (s SubscriptionRepository) GetSubscriptionEmailsByUserIDAndEmails(ctx context.Context, id string, emails []string) ([]string, error) {
 	list := make([]view.SubscriberEmail, 0)
+	query := `select distinct * from (
+		select email from public.users u1 where id in (select subscriber_id from subscriptions where user_id = $1 and status = $2)
+		union
+		select email from public.users u2
+		where email = any('{%s}'::text[])
+		and id not in (select subscriber_id from subscriptions where user_id = $1 and status = $3)
+	) as sub_query`
+	iEmails := strings.Join(emails, ",")
+
+	queryWithEmails := fmt.Sprintf(query, iEmails)
 	err := model.NewQuery(
-		qm.Select("u.email as subscriber_email"),
-		qm.From("subscriptions s"),
-		qm.LeftOuterJoin("users u on s.subscriber_id = u.id"),
-		qm.Where("s.user_id = ?", id),
-		qm.And("s.status = ?", status)).Bind(ctx, s.db.Model(ctx), &list)
+		qm.SQL(queryWithEmails, id, domain.SubscriptionStatusSubscribed, domain.SubscriptionStatusUnsubscribed),
+	).Bind(ctx, s.db.Model(ctx), &list)
 	if err != nil {
 		return []string{}, common.ErrDB(err)
 	}
 
-	emails := make([]string, len(list))
-	for i, _ := range emails {
-		emails[i] = list[i].Email
+	result := make([]string, len(list))
+	for i := range result {
+		result[i] = list[i].Email
 	}
 
-	return emails, nil
+	return result, nil
 }
