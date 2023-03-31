@@ -63,10 +63,9 @@ func TestFriendship_ListUpdatesUserHandler(t *testing.T) {
 				emails[0]: friends[0],
 				emails[1]: friends[1],
 			},
-			getSubscriptionSubscribedData:   emails[1:3],
-			getSubscriptionUnsubscribedData: emails[5:7],
-			result:                          emails[1:5],
-			err:                             nil,
+			getSubscriptionSubscribedData: emails[1:3],
+			result:                        emails[1:3],
+			err:                           nil,
 		},
 		{
 			name:                    "get list common friendship fail because invalid mention",
@@ -87,32 +86,6 @@ func TestFriendship_ListUpdatesUserHandler(t *testing.T) {
 			},
 			getSubscriptionSubscribedError: errDB,
 			err:                            common.ErrCannotListEntity(domain.Subscription{}.DomainName(), errDB),
-		},
-		{
-			name:                    "get list common friendship fail because getSubscriptionUnsubscribed has error",
-			text:                    "Hello World! email1@example.com email2@example.com",
-			mentionedEmails:         []string{"email1@example.com", "email2@example.com"},
-			getUserIDsByEmailsParam: emails[0],
-			getUserIDsByEmailsData: map[string]string{
-				emails[0]: friends[0],
-				emails[1]: friends[1],
-			},
-			getSubscriptionSubscribedData:    emails[1:3],
-			getSubscriptionUnsubscribedError: errDB,
-			err:                              common.ErrCannotListEntity(domain.Subscription{}.DomainName(), errDB),
-		},
-		{
-			name:                    "get list common friendship successful but mention the blocked user",
-			text:                    "Hello World! email1@example.com email2@example.com",
-			mentionedEmails:         []string{"email1@example.com", "email2@example.com"},
-			getUserIDsByEmailsParam: emails[0],
-			getUserIDsByEmailsData: map[string]string{
-				emails[0]: friends[0],
-				emails[1]: friends[1],
-			},
-			getSubscriptionSubscribedData:   emails[1:3],
-			getSubscriptionUnsubscribedData: emails[4:5],
-			result:                          emails[1:4],
 		},
 	}
 
