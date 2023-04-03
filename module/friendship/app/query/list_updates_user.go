@@ -22,12 +22,10 @@ func NewListUpdatesUserHandler(subscriptionRepo domain.SubscriptionRepo, userRep
 }
 
 func (h ListUpdatesUserHandler) Handle(ctx context.Context, email, text string) ([]string, error) {
-	emailFromTexts := util.GetEmailsFromString(text)
-	emails := append(emailFromTexts, email)
-	emails = util.RemoveDuplicates(emails)
+	emailFromTexts := util.RemoveDuplicates(util.GetEmailsFromString(text))
 
 	// get userId from email to check available
-	mapEmailUser, err := h.userRepo.GetUserIDsByEmails(ctx, emails)
+	mapEmailUser, err := h.userRepo.GetUserIDsByEmails(ctx, []string{email})
 	if err != nil {
 		logger.Errorf("userRepo.GetUserIDsByEmails %w", err)
 		if err == domain.ErrNotFoundUserByEmail {
@@ -35,37 +33,18 @@ func (h ListUpdatesUserHandler) Handle(ctx context.Context, email, text string) 
 		}
 		return nil, common.ErrCannotGetEntity(domain.User{}.DomainName(), err)
 	}
+
 	userID, ok := mapEmailUser[email]
 	if !ok {
 		return nil, common.ErrInvalidRequest(nil, "email")
 	}
+
 	// get list subscription from userId
-	subs, err := h.subscriptionRepo.GetSubscriptionEmailsByUserIDAndStatus(ctx, userID, domain.SubscriptionStatusSubscribed)
+	subs, err := h.subscriptionRepo.GetSubscriptionEmailsByUserIDAndEmails(ctx, userID, emailFromTexts)
 	if err != nil {
 		logger.Errorf("subscriptionRepo.GetSubscriptionEmailsByUserIDAndStatus %w", err)
 		return nil, common.ErrCannotListEntity(domain.Subscription{}.DomainName(), err)
 	}
 
-	subs = append(subs, emailFromTexts...)
-	subs = util.RemoveDuplicates(subs)
-
-	result := subs
-	if len(emailFromTexts) > 0 {
-		blockSubs, err := h.subscriptionRepo.GetSubscriptionEmailsByUserIDAndStatus(ctx, userID, domain.SubscriptionStatusUnsubscribed)
-		if err != nil {
-			logger.Errorf("subscriptionRepo.GetSubscriptionEmailsByUserIDAndStatus %w", err)
-			return nil, common.ErrCannotListEntity(domain.Subscription{}.DomainName(), err)
-		}
-
-		if len(blockSubs) > 0 {
-			result = make([]string, 0)
-			for _, r := range subs {
-				if !util.IsContain(blockSubs, r) {
-					result = append(result, r)
-				}
-			}
-		}
-	}
-
-	return result, nil
+	return subs, nil
 }

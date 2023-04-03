@@ -63,5 +63,5 @@ type SubscriptionRepo interface {
 	GetSubscription(ctx context.Context, ss Subscriptions) (Subscriptions, error)
 	UpdateStatus(ctx context.Context, id string, status SubscriptionStatus) error
 	UnsertSubscription(ctx context.Context, sub Subscription) error
-	GetSubscriptionEmailsByUserIDAndStatus(ctx context.Context, id string, status SubscriptionStatus) ([]string, error)
+	GetSubscriptionEmailsByUserIDAndEmails(ctx context.Context, id string, emails []string) ([]string, error)
 }

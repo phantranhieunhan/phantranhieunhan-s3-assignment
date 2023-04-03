@@ -31,7 +31,7 @@ func (m *MockSubscriptionRepository) UnsertSubscription(ctx context.Context, d d
 	return args.Error(0)
 }
 
-func (m *MockSubscriptionRepository) GetSubscriptionEmailsByUserIDAndStatus(ctx context.Context, id string, status domain.SubscriptionStatus) ([]string, error) {
-	args := m.Called(ctx, id, status)
+func (m *MockSubscriptionRepository) GetSubscriptionEmailsByUserIDAndEmails(ctx context.Context, id string, emails []string) ([]string, error) {
+	args := m.Called(ctx, id, emails)
 	return args.Get(0).([]string), args.Error(1)
 }
