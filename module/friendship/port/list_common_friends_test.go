@@ -50,6 +50,14 @@ func TestListCommonFriends(t *testing.T) {
 			hasFinalErr:    true,
 		},
 		{
+			name: "fail because request emails is the same",
+			bodyRequest: ListCommonFriendsReq{
+				Friends: []string{"lisa@example.com", "lisa@example.com"},
+			},
+			hasValidateErr: true,
+			hasFinalErr:    true,
+		},
+		{
 			name:           "fail because email invalid",
 			bodyRequest:    ListCommonFriendsReq{Friends: []string{"lisa-example.com"}},
 			hasValidateErr: true,

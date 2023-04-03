@@ -15,3 +15,6 @@ dev:
 
 gen_local_db:
 	sqlboiler psql -c generate_db/friendship.local.toml
+
+test:
+	go test ./... -config=./config/config.yaml

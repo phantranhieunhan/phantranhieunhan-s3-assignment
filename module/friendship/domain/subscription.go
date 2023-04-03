@@ -22,6 +22,15 @@ func (s SubscriptionStatus) AllowSubscribe() bool {
 	}
 }
 
+func (s SubscriptionStatus) AllowBlock() bool {
+	switch s {
+	case SubscriptionStatusInvalid, SubscriptionStatusSubscribed:
+		return true
+	default:
+		return false
+	}
+}
+
 func (s SubscriptionStatus) IsNoneExisted() bool {
 	switch s {
 	case SubscriptionStatusInvalid:
@@ -48,8 +57,12 @@ func (r Subscription) DomainName() string {
 	return "Subscription"
 }
 
-func (r Subscription) GetMapKey() string {
+func (r Subscription) GetUserSubscriberMapKey() string {
 	return r.UserID + r.SubscriberID
+}
+
+func (r Subscription) GetSubscriberUserMapKey() string {
+	return r.SubscriberID + r.UserID
 }
 
 type Subscriptions []Subscription

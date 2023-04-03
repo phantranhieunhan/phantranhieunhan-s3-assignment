@@ -68,9 +68,11 @@ func (s *Server) ConnectFriendship(c *gin.Context) {
 		},
 	})
 	if err != nil {
-		logger.Error("ConnectFriendship.SubscribeUser.HandleWithSubscription: ", err)
-		common.HttpErrorHandler(c, err)
-		return
+		if e, ok := err.(*common.AppError); !ok || e.RootError() != domain.ErrAlreadyExists {
+			logger.Error("ConnectFriendship.SubscribeUser.HandleWithSubscription: ", err)
+			common.HttpErrorHandler(c, err)
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, common.SimpleSuccessResponse(nil))

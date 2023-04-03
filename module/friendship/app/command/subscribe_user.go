@@ -2,7 +2,6 @@ package command
 
 import (
 	"context"
-	"errors"
 
 	"github.com/phantranhieunhan/s3-assignment/common"
 	"github.com/phantranhieunhan/s3-assignment/common/logger"
@@ -61,30 +60,23 @@ func (h SubscribeUserHandler) HandleWithSubscription(ctx context.Context, ds dom
 func (h SubscribeUserHandler) handle(ctx context.Context, ds domain.Subscriptions) error {
 	mapSub := make(map[string]domain.Subscription, 0)
 	for _, v := range ds {
-		mapSub[v.GetMapKey()] = v
+		mapSub[v.GetUserSubscriberMapKey()] = v
 	}
 
 	err := h.transactor.WithinTransaction(ctx, func(ctx context.Context) error {
-		fs, err := h.subscribeUserRepo.GetSubscription(ctx, ds)
+		gotSub, err := h.subscribeUserRepo.GetSubscription(ctx, ds)
 		if err != nil {
 			logger.Errorf("subscribeUserRepo.GetSubscription %w", err)
 			return common.ErrCannotGetEntity(domain.Subscription{}.DomainName(), err)
 		}
 
-		for _, v := range fs {
-			mapSub[v.GetMapKey()] = v
+		for _, v := range gotSub {
+			mapSub[v.GetUserSubscriberMapKey()] = v
 		}
-		for _, sub := range mapSub {
+		var isAlreadySubscribed bool
+		for _, v := range ds {
+			sub := mapSub[v.GetUserSubscriberMapKey()]
 			if sub.Status.AllowSubscribe() {
-				friendship, err := h.friendshipRepo.GetFriendshipByUserIDs(ctx, sub.UserID, sub.SubscriberID)
-				if err != nil && !errors.Is(err, domain.ErrRecordNotFound) {
-					return common.ErrCannotGetEntity(friendship.DomainName(), err)
-				}
-
-				if friendship.Status.CanNotSubscribe() {
-					return common.ErrInvalidRequest(domain.ErrFriendshipIsUnavailable, "")
-				}
-
 				if sub.Status.IsNoneExisted() {
 					sub.Status = domain.SubscriptionStatusSubscribed
 					sub.Id, err = h.subscribeUserRepo.Create(ctx, sub)
@@ -96,7 +88,12 @@ func (h SubscribeUserHandler) handle(ctx context.Context, ds domain.Subscription
 						return common.ErrCannotUpdateEntity(sub.DomainName(), err)
 					}
 				}
+			} else {
+				isAlreadySubscribed = true
 			}
+		}
+		if isAlreadySubscribed {
+			return common.ErrInvalidRequest(domain.ErrAlreadyExists, "emails")
 		}
 		return nil
 	})

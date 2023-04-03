@@ -43,6 +43,19 @@ func (b BlockUpdatesUserHandler) Handle(ctx context.Context, payload payload.Blo
 	targetID := userIDs[payload.Target]
 
 	err = b.transactor.WithinTransaction(ctx, func(ctx context.Context) error {
+		gotSub, err := b.subscriptionRepo.GetSubscription(ctx, domain.Subscriptions{
+			{UserID: targetID, SubscriberID: requestorID},
+		})
+		if err != nil {
+			logger.Errorf("subscribeUserRepo.GetSubscription %w", err)
+			return common.ErrCannotGetEntity(domain.Subscription{}.DomainName(), err)
+		}
+		if len(gotSub) > 0 {
+			if !gotSub[0].Status.AllowBlock() {
+				return common.ErrInvalidRequest(domain.ErrAlreadyExists, "emails")
+			}
+		}
+
 		f, err := b.friendshipRepo.GetFriendshipByUserIDs(ctx, requestorID, targetID)
 		if err != nil && err != domain.ErrRecordNotFound {
 			logger.Errorf("Create.GetFriendshipByUserIDs %w", err)
@@ -50,19 +63,13 @@ func (b BlockUpdatesUserHandler) Handle(ctx context.Context, payload payload.Blo
 		}
 
 		if err == domain.ErrRecordNotFound || f.Status.CanBlockUser() {
-			if err = b.unsubscribeUser(ctx, requestorID, targetID); err != nil {
-				return err
-			}
-
 			if err = b.blockUser(ctx, f.Id, requestorID, targetID); err != nil {
 				return err
 			}
-		} else if f.Status == domain.FriendshipStatusFriended {
-			if err = b.unsubscribeUser(ctx, requestorID, targetID); err != nil {
-				return err
-			}
-		} else {
-			return common.ErrInvalidRequest(domain.ErrCannotBlockUpdatesFromBlockedUser, "")
+		}
+
+		if err = b.unsubscribeUser(ctx, requestorID, targetID); err != nil {
+			return err
 		}
 
 		return nil

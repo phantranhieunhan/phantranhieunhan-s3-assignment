@@ -10,4 +10,6 @@ var (
 	ErrNotFoundUserByEmail = errors.New("not found user by email")
 
 	ErrEmailIsNotValid = errors.New("emails is not valid")
+
+	ErrAlreadyExists = errors.New("already exists")
 )
