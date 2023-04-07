@@ -257,7 +257,7 @@ func (r *RepoMock_TestFriendship_BlockUpdatesUserHandler) prepare(ctx context.Co
 func (r *RepoMock_TestFriendship_BlockUpdatesUserHandler) prepareUnsubscribeMock(ctx context.Context, t *testing.T, tc TestCase_Friendship_BlockUpdatesUserHandler) {
 	friends := []string{"friend-1", "friend-2"}
 
-	r.mockSubscriptionRepo.On("UnsertSubscription", ctx, domain.Subscription{
+	r.mockSubscriptionRepo.On("UpsertSubscription", ctx, domain.Subscription{
 		UserID: friends[1], SubscriberID: friends[0], Status: domain.SubscriptionStatusUnsubscribed},
 	).Return("", tc.upsertSubscriptionError).Once()
 }
