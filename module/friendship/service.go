@@ -28,5 +28,5 @@ func New(r *gin.Engine, db postgres.Database) {
 			ListUpdatesUser:   query.NewListUpdatesUserHandler(subRepo, userRepo),
 		},
 	}
-	port.NewServer(r, application)
+	port.NewServer(application).Router(r)
 }

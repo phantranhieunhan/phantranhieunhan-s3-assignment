@@ -1,0 +1,181 @@
+{
+	"info": {
+		"_postman_id": "f5624d20-1b1a-4393-8222-629dbab411f1",
+		"name": "Demo",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13404894"
+	},
+	"item": [
+		{
+			"name": "US1: ConnectFriendship",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"friends\": [\r\n        \"lisa@example.com\",\r\n        \"common@example.com\"\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DOMAIN}}/friendship/connect",
+					"host": [
+						"{{DOMAIN}}"
+					],
+					"path": [
+						"friendship",
+						"connect"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "US2: List Friends",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"lisa@example.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DOMAIN}}/friendship/friends",
+					"host": [
+						"{{DOMAIN}}"
+					],
+					"path": [
+						"friendship",
+						"friends"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "US3: Mutual Friends",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"friends\": [\r\n        \"kate@example.com\",\r\n        \"lisa@example.com\"\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DOMAIN}}/friendship/mutuals",
+					"host": [
+						"{{DOMAIN}}"
+					],
+					"path": [
+						"friendship",
+						"mutuals"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "US4: Subscribe User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"requestor\": \"john@example.com\",\r\n    \"target\": \"common@example.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DOMAIN}}/subscription/subscribe",
+					"host": [
+						"{{DOMAIN}}"
+					],
+					"path": [
+						"subscription",
+						"subscribe"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "US5: Block Update User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"requestor\": \"andy@example.com\",\r\n    \"target\": \"common@example.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DOMAIN}}/subscription/block",
+					"host": [
+						"{{DOMAIN}}"
+					],
+					"path": [
+						"subscription",
+						"block"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "US6: ListUpdatesUser",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sender\": \"lisa@example.com\",\n    \"text\": \"Hello World! common@example.com\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DOMAIN}}/subscription/updates_user",
+					"host": [
+						"{{DOMAIN}}"
+					],
+					"path": [
+						"subscription",
+						"updates_user"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

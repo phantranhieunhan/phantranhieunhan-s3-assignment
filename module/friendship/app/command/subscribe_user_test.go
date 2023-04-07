@@ -8,6 +8,7 @@ import (
 
 	"github.com/phantranhieunhan/s3-assignment/common"
 	mockRepo "github.com/phantranhieunhan/s3-assignment/mock/friendship/repository"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/command/payload"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 
 	"github.com/stretchr/testify/assert"
@@ -156,8 +157,8 @@ func TestSubscribeUser_Handle(t *testing.T) {
 			defer cancel()
 			repoMock.prepare(ctx, t, tc)
 
-			err := h.Handle(ctx, SubscriberUserPayloads{
-				SubscriberUserPayload{Requestor: emails[0], Target: emails[1]},
+			err := h.Handle(ctx, payload.SubscriberUserPayloads{
+				payload.SubscriberUserPayload{Requestor: emails[0], Target: emails[1]},
 			})
 			assert.Equal(t, err, tc.err)
 			mock.AssertExpectationsForObjects(t, mockFriendshipRepo, mockUserRepo, mockTransaction, mockSubscriptionRepo)

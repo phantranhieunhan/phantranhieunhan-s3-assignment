@@ -26,9 +26,9 @@ func (m *MockSubscriptionRepository) GetSubscription(ctx context.Context, ss dom
 	return args.Get(0).(domain.Subscriptions), args.Error(1)
 }
 
-func (m *MockSubscriptionRepository) UnsertSubscription(ctx context.Context, d domain.Subscription) error {
+func (m *MockSubscriptionRepository) UpsertSubscription(ctx context.Context, d domain.Subscription) (string, error) {
 	args := m.Called(ctx, d)
-	return args.Error(0)
+	return args.String(0), args.Error(1)
 }
 
 func (m *MockSubscriptionRepository) GetSubscriptionEmailsByUserIDAndEmails(ctx context.Context, id string, emails []string) ([]string, error) {

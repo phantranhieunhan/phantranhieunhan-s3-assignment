@@ -5,13 +5,9 @@ import (
 
 	"github.com/phantranhieunhan/s3-assignment/common"
 	"github.com/phantranhieunhan/s3-assignment/common/logger"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/command/payload"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 )
-
-type BlockUpdatesUserPayload struct {
-	Requestor string
-	Target    string
-}
 
 type BlockUpdatesUserHandler struct {
 	friendshipRepo   domain.FriendshipRepo
@@ -29,7 +25,7 @@ func NewBlockUpdatesUserHandler(repo domain.FriendshipRepo, userRepo domain.User
 	}
 }
 
-func (b BlockUpdatesUserHandler) Handle(ctx context.Context, payload BlockUpdatesUserPayload) error {
+func (b BlockUpdatesUserHandler) Handle(ctx context.Context, payload payload.BlockUpdatesUserPayload) error {
 	if payload.Requestor == payload.Target {
 		return common.ErrInvalidRequest(domain.ErrEmailIsNotValid, "payload")
 	}
@@ -92,9 +88,9 @@ func (b BlockUpdatesUserHandler) blockUser(ctx context.Context, friendshipID, re
 
 func (b BlockUpdatesUserHandler) unsubscribeUser(ctx context.Context, requestorID, targetID string) error {
 	sub := domain.Subscription{UserID: targetID, SubscriberID: requestorID, Status: domain.SubscriptionStatusUnsubscribed}
-	err := b.subscriptionRepo.UnsertSubscription(ctx, sub)
+	_, err := b.subscriptionRepo.UpsertSubscription(ctx, sub)
 	if err != nil {
-		logger.Errorf("subscriptionRepo.UnsertSubscription %w", err)
+		logger.Errorf("subscriptionRepo.UpsertSubscription %w", err)
 		return common.ErrCannotUpdateEntity(sub.DomainName(), err)
 	}
 
