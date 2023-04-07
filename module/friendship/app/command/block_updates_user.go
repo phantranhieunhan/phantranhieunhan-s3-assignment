@@ -50,10 +50,8 @@ func (b BlockUpdatesUserHandler) Handle(ctx context.Context, payload payload.Blo
 			logger.Errorf("subscribeUserRepo.GetSubscription %w", err)
 			return common.ErrCannotGetEntity(domain.Subscription{}.DomainName(), err)
 		}
-		if len(gotSub) > 0 {
-			if !gotSub[0].Status.AllowBlock() {
-				return common.ErrInvalidRequest(domain.ErrAlreadyExists, "emails")
-			}
+		if len(gotSub) > 0 && !gotSub[0].Status.AllowBlock() {
+			return common.ErrInvalidRequest(domain.ErrAlreadyExists, "emails")
 		}
 
 		f, err := b.friendshipRepo.GetFriendshipByUserIDs(ctx, requestorID, targetID)
