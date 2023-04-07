@@ -40,13 +40,9 @@ func (f SubscriptionRepository) UpdateStatus(ctx context.Context, id string, sta
 		ID:     id,
 		Status: int(status),
 	}
-	effectedRows, err := m.Update(ctx, f.db.Model(ctx), boil.Whitelist(model.SubscriptionColumns.Status, model.SubscriptionColumns.UpdatedAt))
+	_, err := m.Update(ctx, f.db.Model(ctx), boil.Whitelist(model.SubscriptionColumns.Status, model.SubscriptionColumns.UpdatedAt))
 	if err != nil {
 		return common.ErrDB(err)
-	}
-
-	if effectedRows != 1 {
-		return common.ErrDB(domain.ErrUpdateRecordNotFound)
 	}
 
 	return nil

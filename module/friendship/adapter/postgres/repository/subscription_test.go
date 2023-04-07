@@ -105,18 +105,9 @@ func TestSubscription_UpdateStatus(t *testing.T) {
 	suite := NewSuite(ctx)
 	repo := NewSubscriptionRepository(suite.db)
 
-	errDB := errors.New("some error from db")
-
 	cs := []SubscriptionTestCase{
 		{
 			name: "successful",
-		},
-		{
-			name: "fail by invalid id",
-			modifySub: domain.Subscription{
-				Base: domain.Base{Id: "sub-id"},
-			},
-			err: common.ErrDB(errDB),
 		},
 	}
 	for _, tc := range cs {
@@ -135,12 +126,14 @@ func TestSubscription_UpdateStatus(t *testing.T) {
 				id = tc.modifySub.Id
 			}
 
-			repo.UpdateStatus(ctx, id, domain.SubscriptionStatusUnsubscribed)
+			updateErr := repo.UpdateStatus(ctx, id, domain.SubscriptionStatusUnsubscribed)
 			result, err := repo.GetSubscription(ctx, domain.Subscriptions{sub})
 			assert.NoError(t, err)
 			if tc.err == nil {
+				assert.NoError(t, updateErr)
 				assert.Equal(t, domain.SubscriptionStatusUnsubscribed, result[0].Status)
 			} else {
+				assert.Error(t, updateErr)
 				assert.Equal(t, domain.SubscriptionStatusSubscribed, result[0].Status)
 			}
 
