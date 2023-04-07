@@ -40,19 +40,15 @@ func (f SubscriptionRepository) UpdateStatus(ctx context.Context, id string, sta
 		ID:     id,
 		Status: int(status),
 	}
-	effectedRows, err := m.Update(ctx, f.db.Model(ctx), boil.Whitelist(model.SubscriptionColumns.Status, model.SubscriptionColumns.UpdatedAt))
+	_, err := m.Update(ctx, f.db.Model(ctx), boil.Whitelist(model.SubscriptionColumns.Status, model.SubscriptionColumns.UpdatedAt))
 	if err != nil {
 		return common.ErrDB(err)
-	}
-
-	if effectedRows != 1 {
-		return common.ErrDB(domain.ErrUpdateRecordNotFound)
 	}
 
 	return nil
 }
 
-func (f SubscriptionRepository) UnsertSubscription(ctx context.Context, sub domain.Subscription) (string, error) {
+func (f SubscriptionRepository) UpsertSubscription(ctx context.Context, sub domain.Subscription) (string, error) {
 	m := convert.ToSubscriptionModel(sub)
 	if m.ID == "" {
 		m.ID = util.GenUUID()

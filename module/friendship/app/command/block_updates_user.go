@@ -95,9 +95,9 @@ func (b BlockUpdatesUserHandler) blockUser(ctx context.Context, friendshipID, re
 
 func (b BlockUpdatesUserHandler) unsubscribeUser(ctx context.Context, requestorID, targetID string) error {
 	sub := domain.Subscription{UserID: targetID, SubscriberID: requestorID, Status: domain.SubscriptionStatusUnsubscribed}
-	_, err := b.subscriptionRepo.UnsertSubscription(ctx, sub)
+	_, err := b.subscriptionRepo.UpsertSubscription(ctx, sub)
 	if err != nil {
-		logger.Errorf("subscriptionRepo.UnsertSubscription %w", err)
+		logger.Errorf("subscriptionRepo.UpsertSubscription %w", err)
 		return common.ErrCannotUpdateEntity(sub.DomainName(), err)
 	}
 

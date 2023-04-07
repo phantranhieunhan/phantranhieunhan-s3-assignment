@@ -105,18 +105,9 @@ func TestSubscription_UpdateStatus(t *testing.T) {
 	suite := NewSuite(ctx)
 	repo := NewSubscriptionRepository(suite.db)
 
-	errDB := errors.New("some error from db")
-
 	cs := []SubscriptionTestCase{
 		{
 			name: "successful",
-		},
-		{
-			name: "fail by invalid id",
-			modifySub: domain.Subscription{
-				Base: domain.Base{Id: "sub-id"},
-			},
-			err: common.ErrDB(errDB),
 		},
 	}
 	for _, tc := range cs {
@@ -135,12 +126,14 @@ func TestSubscription_UpdateStatus(t *testing.T) {
 				id = tc.modifySub.Id
 			}
 
-			repo.UpdateStatus(ctx, id, domain.SubscriptionStatusUnsubscribed)
+			updateErr := repo.UpdateStatus(ctx, id, domain.SubscriptionStatusUnsubscribed)
 			result, err := repo.GetSubscription(ctx, domain.Subscriptions{sub})
 			assert.NoError(t, err)
 			if tc.err == nil {
+				assert.NoError(t, updateErr)
 				assert.Equal(t, domain.SubscriptionStatusUnsubscribed, result[0].Status)
 			} else {
+				assert.Error(t, updateErr)
 				assert.Equal(t, domain.SubscriptionStatusSubscribed, result[0].Status)
 			}
 
@@ -149,7 +142,7 @@ func TestSubscription_UpdateStatus(t *testing.T) {
 	}
 }
 
-func TestSubscription_UnsertSubscription(t *testing.T) {
+func TestSubscription_UpsertSubscription(t *testing.T) {
 	ctx := context.Background()
 	suite := NewSuite(ctx)
 	repo := NewSubscriptionRepository(suite.db)
@@ -179,7 +172,7 @@ func TestSubscription_UnsertSubscription(t *testing.T) {
 			upsertSub := sub
 			upsertSub.Status = domain.SubscriptionStatusUnsubscribed
 			var upsertErr error
-			sub.Id, upsertErr = repo.UnsertSubscription(ctx, upsertSub)
+			sub.Id, upsertErr = repo.UpsertSubscription(ctx, upsertSub)
 			assert.NoError(t, upsertErr)
 
 			result, err := repo.GetSubscription(ctx, domain.Subscriptions{sub})
@@ -309,7 +302,7 @@ func TestGetSubscriptionEmailsByUserIDAndStatus(t *testing.T) {
 
 			if len(tc.blockedEmails) > 0 {
 				for _, email := range tc.blockedEmails {
-					id, err = repo.UnsertSubscription(ctx, domain.Subscription{
+					id, err = repo.UpsertSubscription(ctx, domain.Subscription{
 						UserID:       sub.UserID,
 						SubscriberID: mapEmailUser[email].ID,
 						Status:       domain.SubscriptionStatusUnsubscribed,

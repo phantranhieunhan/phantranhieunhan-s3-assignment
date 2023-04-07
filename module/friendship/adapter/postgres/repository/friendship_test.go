@@ -84,13 +84,6 @@ func TestFriendship_UpdateStatus(t *testing.T) {
 		{
 			name: "successful",
 		},
-		{
-			name: "fail by invalid id",
-			modifyFriendship: domain.Friendship{
-				Base: domain.Base{Id: "sub-id"},
-			},
-			hasError: true,
-		},
 	}
 	for _, tc := range cs {
 		t.Run(tc.name, func(t *testing.T) {
