@@ -38,6 +38,8 @@ func TestConnectFriendship(t *testing.T) {
 	mockSubscribeUserHandler := new(mockHandler.MockSubscribeUserHandler)
 	commandHandlerErr := errors.New("command handler error")
 
+	appErrorExistsEmail := common.ErrInvalidRequest(domain.ErrAlreadyExists, "emails")
+
 	req := ConnectFriendshipReq{
 		Friends: []string{"lisa@example.com", "common@example.com"},
 	}
@@ -45,6 +47,11 @@ func TestConnectFriendship(t *testing.T) {
 		{
 			name:        "successful",
 			bodyRequest: req,
+		},
+		{
+			name:                      "successful",
+			bodyRequest:               req,
+			subscribeUserHandlerError: appErrorExistsEmail,
 		},
 		{
 			name: "fail because request emails is not 2",
