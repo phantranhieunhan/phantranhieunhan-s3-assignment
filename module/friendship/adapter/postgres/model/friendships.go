@@ -200,8 +200,6 @@ type (
 	// FriendshipSlice is an alias for a slice of pointers to Friendship.
 	// This should almost always be used instead of []Friendship.
 	FriendshipSlice []*Friendship
-	// FriendshipHook is the signature for custom Friendship hook methods
-	FriendshipHook func(context.Context, boil.ContextExecutor, *Friendship) error
 
 	friendshipQuery struct {
 		*queries.Query
@@ -229,179 +227,6 @@ var (
 	_ = qmhelper.Where
 )
 
-var friendshipAfterSelectHooks []FriendshipHook
-
-var friendshipBeforeInsertHooks []FriendshipHook
-var friendshipAfterInsertHooks []FriendshipHook
-
-var friendshipBeforeUpdateHooks []FriendshipHook
-var friendshipAfterUpdateHooks []FriendshipHook
-
-var friendshipBeforeDeleteHooks []FriendshipHook
-var friendshipAfterDeleteHooks []FriendshipHook
-
-var friendshipBeforeUpsertHooks []FriendshipHook
-var friendshipAfterUpsertHooks []FriendshipHook
-
-// doAfterSelectHooks executes all "after Select" hooks.
-func (o *Friendship) doAfterSelectHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
-	if boil.HooksAreSkipped(ctx) {
-		return nil
-	}
-
-	for _, hook := range friendshipAfterSelectHooks {
-		if err := hook(ctx, exec, o); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// doBeforeInsertHooks executes all "before insert" hooks.
-func (o *Friendship) doBeforeInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
-	if boil.HooksAreSkipped(ctx) {
-		return nil
-	}
-
-	for _, hook := range friendshipBeforeInsertHooks {
-		if err := hook(ctx, exec, o); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// doAfterInsertHooks executes all "after Insert" hooks.
-func (o *Friendship) doAfterInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
-	if boil.HooksAreSkipped(ctx) {
-		return nil
-	}
-
-	for _, hook := range friendshipAfterInsertHooks {
-		if err := hook(ctx, exec, o); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// doBeforeUpdateHooks executes all "before Update" hooks.
-func (o *Friendship) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
-	if boil.HooksAreSkipped(ctx) {
-		return nil
-	}
-
-	for _, hook := range friendshipBeforeUpdateHooks {
-		if err := hook(ctx, exec, o); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// doAfterUpdateHooks executes all "after Update" hooks.
-func (o *Friendship) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
-	if boil.HooksAreSkipped(ctx) {
-		return nil
-	}
-
-	for _, hook := range friendshipAfterUpdateHooks {
-		if err := hook(ctx, exec, o); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// doBeforeDeleteHooks executes all "before Delete" hooks.
-func (o *Friendship) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
-	if boil.HooksAreSkipped(ctx) {
-		return nil
-	}
-
-	for _, hook := range friendshipBeforeDeleteHooks {
-		if err := hook(ctx, exec, o); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// doAfterDeleteHooks executes all "after Delete" hooks.
-func (o *Friendship) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
-	if boil.HooksAreSkipped(ctx) {
-		return nil
-	}
-
-	for _, hook := range friendshipAfterDeleteHooks {
-		if err := hook(ctx, exec, o); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// doBeforeUpsertHooks executes all "before Upsert" hooks.
-func (o *Friendship) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
-	if boil.HooksAreSkipped(ctx) {
-		return nil
-	}
-
-	for _, hook := range friendshipBeforeUpsertHooks {
-		if err := hook(ctx, exec, o); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// doAfterUpsertHooks executes all "after Upsert" hooks.
-func (o *Friendship) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
-	if boil.HooksAreSkipped(ctx) {
-		return nil
-	}
-
-	for _, hook := range friendshipAfterUpsertHooks {
-		if err := hook(ctx, exec, o); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// AddFriendshipHook registers your hook function for all future operations.
-func AddFriendshipHook(hookPoint boil.HookPoint, friendshipHook FriendshipHook) {
-	switch hookPoint {
-	case boil.AfterSelectHook:
-		friendshipAfterSelectHooks = append(friendshipAfterSelectHooks, friendshipHook)
-	case boil.BeforeInsertHook:
-		friendshipBeforeInsertHooks = append(friendshipBeforeInsertHooks, friendshipHook)
-	case boil.AfterInsertHook:
-		friendshipAfterInsertHooks = append(friendshipAfterInsertHooks, friendshipHook)
-	case boil.BeforeUpdateHook:
-		friendshipBeforeUpdateHooks = append(friendshipBeforeUpdateHooks, friendshipHook)
-	case boil.AfterUpdateHook:
-		friendshipAfterUpdateHooks = append(friendshipAfterUpdateHooks, friendshipHook)
-	case boil.BeforeDeleteHook:
-		friendshipBeforeDeleteHooks = append(friendshipBeforeDeleteHooks, friendshipHook)
-	case boil.AfterDeleteHook:
-		friendshipAfterDeleteHooks = append(friendshipAfterDeleteHooks, friendshipHook)
-	case boil.BeforeUpsertHook:
-		friendshipBeforeUpsertHooks = append(friendshipBeforeUpsertHooks, friendshipHook)
-	case boil.AfterUpsertHook:
-		friendshipAfterUpsertHooks = append(friendshipAfterUpsertHooks, friendshipHook)
-	}
-}
-
 // OneG returns a single friendship record from the query using the global executor.
 func (q friendshipQuery) OneG(ctx context.Context) (*Friendship, error) {
 	return q.One(ctx, boil.GetContextDB())
@@ -421,10 +246,6 @@ func (q friendshipQuery) One(ctx context.Context, exec boil.ContextExecutor) (*F
 		return nil, errors.Wrap(err, "model: failed to execute a one query for friendships")
 	}
 
-	if err := o.doAfterSelectHooks(ctx, exec); err != nil {
-		return o, err
-	}
-
 	return o, nil
 }
 
@@ -440,14 +261,6 @@ func (q friendshipQuery) All(ctx context.Context, exec boil.ContextExecutor) (Fr
 	err := q.Bind(ctx, exec, &o)
 	if err != nil {
 		return nil, errors.Wrap(err, "model: failed to assign all query results to Friendship slice")
-	}
-
-	if len(friendshipAfterSelectHooks) != 0 {
-		for _, obj := range o {
-			if err := obj.doAfterSelectHooks(ctx, exec); err != nil {
-				return o, err
-			}
-		}
 	}
 
 	return o, nil
@@ -598,14 +411,6 @@ func (friendshipL) LoadFriend(ctx context.Context, e boil.ContextExecutor, singu
 		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
 	}
 
-	if len(userAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
-				return err
-			}
-		}
-	}
-
 	if len(resultSlice) == 0 {
 		return nil
 	}
@@ -716,14 +521,6 @@ func (friendshipL) LoadUser(ctx context.Context, e boil.ContextExecutor, singula
 	}
 	if err = results.Err(); err != nil {
 		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
-	}
-
-	if len(userAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
-				return err
-			}
-		}
 	}
 
 	if len(resultSlice) == 0 {
@@ -905,10 +702,6 @@ func FindFriendship(ctx context.Context, exec boil.ContextExecutor, iD string, s
 		return nil, errors.Wrap(err, "model: unable to select from friendships")
 	}
 
-	if err = friendshipObj.doAfterSelectHooks(ctx, exec); err != nil {
-		return friendshipObj, err
-	}
-
 	return friendshipObj, nil
 }
 
@@ -934,10 +727,6 @@ func (o *Friendship) Insert(ctx context.Context, exec boil.ContextExecutor, colu
 		if o.UpdatedAt.IsZero() {
 			o.UpdatedAt = currTime
 		}
-	}
-
-	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
-		return err
 	}
 
 	nzDefaults := queries.NonZeroDefaultSet(friendshipColumnsWithDefault, o)
@@ -1003,7 +792,7 @@ func (o *Friendship) Insert(ctx context.Context, exec boil.ContextExecutor, colu
 		friendshipInsertCacheMut.Unlock()
 	}
 
-	return o.doAfterInsertHooks(ctx, exec)
+	return nil
 }
 
 // UpdateG a single Friendship record using the global executor.
@@ -1023,9 +812,6 @@ func (o *Friendship) Update(ctx context.Context, exec boil.ContextExecutor, colu
 	}
 
 	var err error
-	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
-		return 0, err
-	}
 	key := makeCacheKey(columns, nil)
 	friendshipUpdateCacheMut.RLock()
 	cache, cached := friendshipUpdateCache[key]
@@ -1078,7 +864,7 @@ func (o *Friendship) Update(ctx context.Context, exec boil.ContextExecutor, colu
 		friendshipUpdateCacheMut.Unlock()
 	}
 
-	return rowsAff, o.doAfterUpdateHooks(ctx, exec)
+	return rowsAff, nil
 }
 
 // UpdateAllG updates all rows with the specified column values.
@@ -1174,10 +960,6 @@ func (o *Friendship) Upsert(ctx context.Context, exec boil.ContextExecutor, upda
 			o.CreatedAt = currTime
 		}
 		o.UpdatedAt = currTime
-	}
-
-	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {
-		return err
 	}
 
 	nzDefaults := queries.NonZeroDefaultSet(friendshipColumnsWithDefault, o)
@@ -1282,7 +1064,7 @@ func (o *Friendship) Upsert(ctx context.Context, exec boil.ContextExecutor, upda
 		friendshipUpsertCacheMut.Unlock()
 	}
 
-	return o.doAfterUpsertHooks(ctx, exec)
+	return nil
 }
 
 // DeleteG deletes a single Friendship record.
@@ -1296,10 +1078,6 @@ func (o *Friendship) DeleteG(ctx context.Context) (int64, error) {
 func (o *Friendship) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if o == nil {
 		return 0, errors.New("model: no Friendship provided for delete")
-	}
-
-	if err := o.doBeforeDeleteHooks(ctx, exec); err != nil {
-		return 0, err
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), friendshipPrimaryKeyMapping)
@@ -1318,10 +1096,6 @@ func (o *Friendship) Delete(ctx context.Context, exec boil.ContextExecutor) (int
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
 		return 0, errors.Wrap(err, "model: failed to get rows affected by delete for friendships")
-	}
-
-	if err := o.doAfterDeleteHooks(ctx, exec); err != nil {
-		return 0, err
 	}
 
 	return rowsAff, nil
@@ -1363,14 +1137,6 @@ func (o FriendshipSlice) DeleteAll(ctx context.Context, exec boil.ContextExecuto
 		return 0, nil
 	}
 
-	if len(friendshipBeforeDeleteHooks) != 0 {
-		for _, obj := range o {
-			if err := obj.doBeforeDeleteHooks(ctx, exec); err != nil {
-				return 0, err
-			}
-		}
-	}
-
 	var args []interface{}
 	for _, obj := range o {
 		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), friendshipPrimaryKeyMapping)
@@ -1393,14 +1159,6 @@ func (o FriendshipSlice) DeleteAll(ctx context.Context, exec boil.ContextExecuto
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
 		return 0, errors.Wrap(err, "model: failed to get rows affected by deleteall for friendships")
-	}
-
-	if len(friendshipAfterDeleteHooks) != 0 {
-		for _, obj := range o {
-			if err := obj.doAfterDeleteHooks(ctx, exec); err != nil {
-				return 0, err
-			}
-		}
 	}
 
 	return rowsAff, nil

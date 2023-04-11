@@ -1,6 +1,9 @@
 # Directory in which the generated static code is to be kept.
 output = "module/friendship/adapter/postgres/model" 
 
+no-hooks = true
+no-tests = true
+
 # Each time new code is generated, completely wipe out the old one.
 wipe = true
 
