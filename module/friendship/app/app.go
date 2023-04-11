@@ -1,8 +1,10 @@
 package app
 
 import (
-	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/command"
-	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/query"
+	"context"
+
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/command/payload"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 )
 
 type Application struct {
@@ -11,13 +13,26 @@ type Application struct {
 }
 
 type Commands struct {
-	ConnectFriendship command.ConnectFriendshipHandler
-	SubscribeUser     command.SubscribeUserHandler
-	BlockUpdatesUser  command.BlockUpdatesUserHandler
+	ConnectFriendship interface {
+		Handle(ctx context.Context, userEmail string, friendEmail string) (domain.Friendship, error)
+	}
+	SubscribeUser interface {
+		Handle(ctx context.Context, payload payload.SubscriberUserPayloads) error
+		HandleWithSubscription(ctx context.Context, ds domain.Subscriptions) error
+	}
+	BlockUpdatesUser interface {
+		Handle(ctx context.Context, payload payload.BlockUpdatesUserPayload) error
+	}
 }
 
 type Queries struct {
-	ListFriends       query.ListFriendsHandler
-	ListCommonFriends query.ListCommonFriendsHandler
-	ListUpdatesUser   query.ListUpdatesUserHandler
+	ListFriends interface {
+		Handle(ctx context.Context, email string) ([]string, error)
+	}
+	ListCommonFriends interface {
+		Handle(ctx context.Context, emails []string) ([]string, error)
+	}
+	ListUpdatesUser interface {
+		Handle(ctx context.Context, email string, text string) ([]string, error)
+	}
 }

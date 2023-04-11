@@ -22,6 +22,15 @@ func (s SubscriptionStatus) AllowSubscribe() bool {
 	}
 }
 
+func (s SubscriptionStatus) AllowBlock() bool {
+	switch s {
+	case SubscriptionStatusInvalid, SubscriptionStatusSubscribed:
+		return true
+	default:
+		return false
+	}
+}
+
 func (s SubscriptionStatus) IsNoneExisted() bool {
 	switch s {
 	case SubscriptionStatusInvalid:
@@ -48,8 +57,12 @@ func (r Subscription) DomainName() string {
 	return "Subscription"
 }
 
-func (r Subscription) GetMapKey() string {
+func (r Subscription) GetUserSubscriberMapKey() string {
 	return r.UserID + r.SubscriberID
+}
+
+func (r Subscription) GetSubscriberUserMapKey() string {
+	return r.SubscriberID + r.UserID
 }
 
 type Subscriptions []Subscription
@@ -62,6 +75,6 @@ type SubscriptionRepo interface {
 	Create(ctx context.Context, sub Subscription) (string, error)
 	GetSubscription(ctx context.Context, ss Subscriptions) (Subscriptions, error)
 	UpdateStatus(ctx context.Context, id string, status SubscriptionStatus) error
-	UnsertSubscription(ctx context.Context, sub Subscription) error
+	UpsertSubscription(ctx context.Context, sub Subscription) (string, error)
 	GetSubscriptionEmailsByUserIDAndEmails(ctx context.Context, id string, emails []string) ([]string, error)
 }

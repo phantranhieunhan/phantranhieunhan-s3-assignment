@@ -9,8 +9,13 @@ type Server struct {
 	app app.Application
 }
 
-func NewServer(r *gin.Engine, app app.Application) Server {
+func NewServer(app app.Application) Server {
 	s := Server{app: app}
+
+	return s
+}
+
+func (s Server) Router(r *gin.Engine) {
 	friendship := r.Group("friendship")
 	friendship.POST("connect", s.ConnectFriendship)
 	friendship.GET("friends", s.ListFriends)
@@ -20,5 +25,4 @@ func NewServer(r *gin.Engine, app app.Application) Server {
 	subscription.POST("subscribe", s.SubscribeUser)
 	subscription.POST("block", s.BlockUpdatesUser)
 	subscription.GET("updates_user", s.ListUpdatesUser)
-	return s
 }

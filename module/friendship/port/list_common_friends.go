@@ -19,6 +19,10 @@ func (l ListCommonFriendsReq) validate() error {
 		return common.ErrInvalidRequest(fmt.Errorf("friends must be of length 2"), constant.FRIENDS)
 	}
 
+	if l.Friends[0] == l.Friends[1] {
+		return common.ErrInvalidRequest(fmt.Errorf("friends must be different"), constant.FRIENDS)
+	}
+
 	for i, friend := range l.Friends {
 		if err := common.ValidateRequired(friend, fmt.Sprintf("friend %d", i)); err != nil {
 			return err

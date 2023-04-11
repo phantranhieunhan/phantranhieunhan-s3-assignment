@@ -8,6 +8,7 @@ import (
 
 	"github.com/phantranhieunhan/s3-assignment/common"
 	mockRepo "github.com/phantranhieunhan/s3-assignment/mock/friendship/repository"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/command/payload"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -24,6 +25,9 @@ type TestCase_Friendship_BlockUpdatesUserHandler struct {
 	getUserIDsByEmailsData  map[string]string
 
 	withinTransactionError error
+
+	getSubscriptionData  domain.SubscriptionStatus
+	getSubscriptionError error
 
 	getFriendshipByUserIDsError error
 	getFriendshipByUserIDsData  domain.Friendship
@@ -107,21 +111,23 @@ func TestFriendship_BlockUpdatesUserHandler(t *testing.T) {
 			},
 		},
 		{
-			name:           "block updates user fail because they did block together before",
-			err:            common.ErrInvalidRequest(domain.ErrCannotBlockUpdatesFromBlockedUser, ""),
-			requestorEmail: emails[0],
-			targetEmail:    emails[1],
-
+			name:                   "block updates user fail because they did block together before",
+			err:                    common.ErrInvalidRequest(domain.ErrAlreadyExists, "emails"),
+			requestorEmail:         emails[0],
+			targetEmail:            emails[1],
 			getUserIDsByEmailsData: mapEmails,
-			getFriendshipByUserIDsData: domain.Friendship{
-				Base: domain.Base{
-					Id: friendshipId,
-				},
-				UserID:   friends[0],
-				FriendID: friends[1],
-				Status:   domain.FriendshipStatusBlocked,
-			},
-			withinTransactionError: common.ErrInvalidRequest(domain.ErrCannotBlockUpdatesFromBlockedUser, ""),
+			getSubscriptionData:    domain.SubscriptionStatusUnsubscribed,
+			withinTransactionError: common.ErrInvalidRequest(domain.ErrAlreadyExists, "emails"),
+		},
+		{
+			name:                   "block updates user fail because GetSubscriptionData failed",
+			err:                    common.ErrCannotGetEntity(domain.Subscription{}.DomainName(), errDB),
+			requestorEmail:         emails[0],
+			targetEmail:            emails[1],
+			getUserIDsByEmailsData: mapEmails,
+
+			getSubscriptionError:   errDB,
+			withinTransactionError: common.ErrCannotGetEntity(domain.Subscription{}.DomainName(), errDB),
 		},
 		{
 			name:           "block updates user fail because GetUserIDsByEmails failed",
@@ -197,7 +203,7 @@ func TestFriendship_BlockUpdatesUserHandler(t *testing.T) {
 
 			repoMock.prepare(ctx, t, tc)
 
-			err := h.Handle(ctx, BlockUpdatesUserPayload{
+			err := h.Handle(ctx, payload.BlockUpdatesUserPayload{
 				Requestor: tc.requestorEmail,
 				Target:    tc.targetEmail,
 			})
@@ -218,6 +224,7 @@ func (r *RepoMock_TestFriendship_BlockUpdatesUserHandler) prepare(ctx context.Co
 	emails := []string{"email-1", "email-2"}
 	friends := []string{"friend-1", "friend-2"}
 	friendshipId := "friendship-id"
+	subId := "sub-id"
 
 	r.mockUserRepo.On("GetUserIDsByEmails", ctx, emails).Return(tc.getUserIDsByEmailsData, tc.getUserIDsByEmailsError).Once()
 	if tc.getUserIDsByEmailsError == nil {
@@ -231,12 +238,18 @@ func (r *RepoMock_TestFriendship_BlockUpdatesUserHandler) prepare(ctx context.Co
 				assert.Equal(t, err.Error(), tc.withinTransactionError.Error())
 			}
 		}).Return(tc.withinTransactionError).Once()
-		friendship := tc.getFriendshipByUserIDsData
-		r.mockFriendshipRepo.On("GetFriendshipByUserIDs", ctx, friends[0], friends[1]).Return(friendship, tc.getFriendshipByUserIDsError).Once()
 
-		if tc.getFriendshipByUserIDsError == domain.ErrRecordNotFound || friendship.Status.CanBlockUser() {
-			r.prepareUnsubscribeMock(ctx, t, tc)
-			if tc.upsertSubscriptionError == nil {
+		r.mockSubscriptionRepo.On("GetSubscription", ctx, domain.Subscriptions{
+			domain.Subscription{UserID: friends[1], SubscriberID: friends[0]},
+		}).Return(domain.Subscriptions{
+			domain.Subscription{Base: domain.Base{Id: subId}, UserID: friends[1], SubscriberID: friends[0], Status: tc.getSubscriptionData},
+		}, tc.getSubscriptionError).Once()
+
+		if tc.getSubscriptionData.AllowBlock() && tc.getSubscriptionError == nil {
+			friendship := tc.getFriendshipByUserIDsData
+			r.mockFriendshipRepo.On("GetFriendshipByUserIDs", ctx, friends[0], friends[1]).Return(friendship, tc.getFriendshipByUserIDsError).Once()
+
+			if tc.getFriendshipByUserIDsError == domain.ErrRecordNotFound || friendship.Status.CanBlockUser() {
 				if friendship.Id == "" {
 					r.mockFriendshipRepo.On("Create", ctx, domain.Friendship{
 						UserID: friends[0], FriendID: friends[1], Status: domain.FriendshipStatusBlocked,
@@ -244,10 +257,11 @@ func (r *RepoMock_TestFriendship_BlockUpdatesUserHandler) prepare(ctx context.Co
 				} else {
 					r.mockFriendshipRepo.On("UpdateStatus", ctx, friendshipId, domain.FriendshipStatusBlocked).Return(tc.updateError).Once()
 				}
-			}
 
-		} else if friendship.Status == domain.FriendshipStatusFriended {
-			r.prepareUnsubscribeMock(ctx, t, tc)
+			}
+			if (tc.getFriendshipByUserIDsError == nil || tc.getFriendshipByUserIDsError == domain.ErrRecordNotFound) && tc.createError == nil && tc.updateError == nil {
+				r.prepareUnsubscribeMock(ctx, t, tc)
+			}
 		}
 	}
 
@@ -256,7 +270,7 @@ func (r *RepoMock_TestFriendship_BlockUpdatesUserHandler) prepare(ctx context.Co
 func (r *RepoMock_TestFriendship_BlockUpdatesUserHandler) prepareUnsubscribeMock(ctx context.Context, t *testing.T, tc TestCase_Friendship_BlockUpdatesUserHandler) {
 	friends := []string{"friend-1", "friend-2"}
 
-	r.mockSubscriptionRepo.On("UnsertSubscription", ctx, domain.Subscription{
+	r.mockSubscriptionRepo.On("UpsertSubscription", ctx, domain.Subscription{
 		UserID: friends[1], SubscriberID: friends[0], Status: domain.SubscriptionStatusUnsubscribed},
-	).Return(tc.upsertSubscriptionError).Once()
+	).Return("", tc.upsertSubscriptionError).Once()
 }

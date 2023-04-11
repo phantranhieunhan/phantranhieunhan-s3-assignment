@@ -8,6 +8,7 @@ import (
 
 	"github.com/phantranhieunhan/s3-assignment/common"
 	mockRepo "github.com/phantranhieunhan/s3-assignment/mock/friendship/repository"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/command/payload"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/domain"
 
 	"github.com/stretchr/testify/assert"
@@ -25,9 +26,6 @@ type TestCase_SubscribeUser_Handle struct {
 	getSubscriptionError error
 
 	withinTransactionError error
-
-	getFriendshipByUserIDsData  domain.Friendship
-	getFriendshipByUserIDsError error
 
 	createData  string
 	createError error
@@ -63,55 +61,27 @@ func TestSubscribeUser_Handle(t *testing.T) {
 
 	tcs := []TestCase_SubscribeUser_Handle{
 		{
-			name: "subscriber a user successfully because user did not connect friend and did not subscribe before",
+			name: "subscriber a user successfully because user did not subscribe before",
 
-			err:                         nil,
-			getUserIDsByEmailsData:      mapEmails,
-			getSubscriptionData:         domain.SubscriptionStatusInvalid,
-			getFriendshipByUserIDsError: domain.ErrRecordNotFound,
-			createData:                  friendshipId,
+			err:                    nil,
+			getUserIDsByEmailsData: mapEmails,
+			getSubscriptionData:    domain.SubscriptionStatusInvalid,
+			createData:             friendshipId,
 		},
 		{
-			name: "subscriber a user successfully because user did not connect friend and unsubscribe before",
-
-			err:                         nil,
-			getUserIDsByEmailsData:      mapEmails,
-			getSubscriptionData:         domain.SubscriptionStatusUnsubscribed,
-			getFriendshipByUserIDsError: domain.ErrRecordNotFound,
-		},
-		{
-			name: "subscriber a user successfully because user friended but unsubscribe before",
+			name: "subscriber a user successfully because user unsubscribe before",
 
 			err:                    nil,
 			getUserIDsByEmailsData: mapEmails,
 			getSubscriptionData:    domain.SubscriptionStatusUnsubscribed,
-			getFriendshipByUserIDsData: domain.Friendship{
-				Base:     domain.Base{Id: friendshipId},
-				UserID:   friends[0],
-				FriendID: friends[1],
-				Status:   domain.FriendshipStatusFriended,
-			},
 		},
 		{
-			name: "subscriber a user successfully because already subscribe",
+			name: "subscriber a user fail because already subscribe",
 
-			err:                    nil,
+			err:                    common.ErrInvalidRequest(domain.ErrAlreadyExists, "emails"),
 			getUserIDsByEmailsData: mapEmails,
 			getSubscriptionData:    domain.SubscriptionStatusSubscribed,
-		},
-		{
-			name: "subscriber a user fail because friendship is blocked",
-
-			err:                    common.ErrInvalidRequest(domain.ErrFriendshipIsUnavailable, ""),
-			getUserIDsByEmailsData: mapEmails,
-			getSubscriptionData:    domain.SubscriptionStatusUnsubscribed,
-			getFriendshipByUserIDsData: domain.Friendship{
-				Base:     domain.Base{Id: friendshipId},
-				UserID:   friends[0],
-				FriendID: friends[1],
-				Status:   domain.FriendshipStatusBlocked,
-			},
-			withinTransactionError: common.ErrInvalidRequest(domain.ErrFriendshipIsUnavailable, ""),
+			withinTransactionError: common.ErrInvalidRequest(domain.ErrAlreadyExists, "emails"),
 		},
 		{
 			name: "subscriber a user fail because get user id by email fail",
@@ -131,22 +101,20 @@ func TestSubscribeUser_Handle(t *testing.T) {
 		{
 			name: "subscriber a user successfully because create fail",
 
-			err:                         common.ErrCannotCreateEntity(domain.Subscription{}.DomainName(), errDB),
-			getUserIDsByEmailsData:      mapEmails,
-			getSubscriptionData:         domain.SubscriptionStatusInvalid,
-			getFriendshipByUserIDsError: domain.ErrRecordNotFound,
-			createError:                 errDB,
-			withinTransactionError:      common.ErrCannotCreateEntity(domain.Subscription{}.DomainName(), errDB),
+			err:                    common.ErrCannotCreateEntity(domain.Subscription{}.DomainName(), errDB),
+			getUserIDsByEmailsData: mapEmails,
+			getSubscriptionData:    domain.SubscriptionStatusInvalid,
+			createError:            errDB,
+			withinTransactionError: common.ErrCannotCreateEntity(domain.Subscription{}.DomainName(), errDB),
 		},
 		{
 			name: "subscriber a user fail because update fail",
 
-			err:                         common.ErrCannotUpdateEntity(domain.Subscription{}.DomainName(), errDB),
-			getUserIDsByEmailsData:      mapEmails,
-			getSubscriptionData:         domain.SubscriptionStatusUnsubscribed,
-			getFriendshipByUserIDsError: domain.ErrRecordNotFound,
-			updateError:                 errDB,
-			withinTransactionError:      common.ErrCannotUpdateEntity(domain.Subscription{}.DomainName(), errDB),
+			err:                    common.ErrCannotUpdateEntity(domain.Subscription{}.DomainName(), errDB),
+			getUserIDsByEmailsData: mapEmails,
+			getSubscriptionData:    domain.SubscriptionStatusUnsubscribed,
+			updateError:            errDB,
+			withinTransactionError: common.ErrCannotUpdateEntity(domain.Subscription{}.DomainName(), errDB),
 		},
 	}
 
@@ -156,8 +124,8 @@ func TestSubscribeUser_Handle(t *testing.T) {
 			defer cancel()
 			repoMock.prepare(ctx, t, tc)
 
-			err := h.Handle(ctx, SubscriberUserPayloads{
-				SubscriberUserPayload{Requestor: emails[0], Target: emails[1]},
+			err := h.Handle(ctx, payload.SubscriberUserPayloads{
+				payload.SubscriberUserPayload{Requestor: emails[0], Target: emails[1]},
 			})
 			assert.Equal(t, err, tc.err)
 			mock.AssertExpectationsForObjects(t, mockFriendshipRepo, mockUserRepo, mockTransaction, mockSubscriptionRepo)
@@ -202,20 +170,14 @@ func (r *RepoMock_TestSubscribeUser_Handle) prepare(ctx context.Context, t *test
 
 		if tc.getSubscriptionError == nil {
 			if subStatus.AllowSubscribe() {
-				r.mockFriendshipRepo.On("GetFriendshipByUserIDs", ctx, friends[1], friends[0]).
-					Return(tc.getFriendshipByUserIDsData, tc.getFriendshipByUserIDsError).Once()
-
-				if (tc.getFriendshipByUserIDsError == nil || errors.Is(tc.getFriendshipByUserIDsError, domain.ErrRecordNotFound)) &&
-					!tc.getFriendshipByUserIDsData.Status.CanNotSubscribe() {
-					if subStatus.IsNoneExisted() {
-						r.mockSubscriptionRepo.On("Create", ctx,
-							domain.Subscription{UserID: friends[1], SubscriberID: friends[0],
-								Status: domain.SubscriptionStatusSubscribed}).
-							Return(tc.createData, tc.createError).Once()
-					} else {
-						r.mockSubscriptionRepo.On("UpdateStatus", ctx, subId, domain.SubscriptionStatusSubscribed).
-							Return(tc.updateError).Once()
-					}
+				if subStatus.IsNoneExisted() {
+					r.mockSubscriptionRepo.On("Create", ctx,
+						domain.Subscription{UserID: friends[1], SubscriberID: friends[0],
+							Status: domain.SubscriptionStatusSubscribed}).
+						Return(tc.createData, tc.createError).Once()
+				} else {
+					r.mockSubscriptionRepo.On("UpdateStatus", ctx, subId, domain.SubscriptionStatusSubscribed).
+						Return(tc.updateError).Once()
 				}
 			}
 		}

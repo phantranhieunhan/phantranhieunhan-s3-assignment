@@ -20,6 +20,10 @@ func (c ConnectFriendshipReq) validate() error {
 		return common.ErrInvalidRequest(fmt.Errorf("friends must be of length 2"), constant.FRIENDS)
 	}
 
+	if c.Friends[0] == c.Friends[1] {
+		return common.ErrInvalidRequest(fmt.Errorf("friends must be different"), constant.FRIENDS)
+	}
+
 	for i, friend := range c.Friends {
 		if err := common.ValidateRequired(friend, fmt.Sprintf("friend %d", i)); err != nil {
 			return err
@@ -34,7 +38,7 @@ func (c ConnectFriendshipReq) validate() error {
 func (s *Server) ConnectFriendship(c *gin.Context) {
 	var req ConnectFriendshipReq
 	var err error
-	if err = c.ShouldBind(&req); err != nil {
+	if err = c.ShouldBindJSON(&req); err != nil {
 		logger.Error("ConnectFriendship.ShouldBind: ", err)
 		common.HttpErrorHandler(c, common.ErrInvalidRequest(err, constant.FRIENDS))
 		return
@@ -64,9 +68,11 @@ func (s *Server) ConnectFriendship(c *gin.Context) {
 		},
 	})
 	if err != nil {
-		logger.Error("ConnectFriendship.SubscribeUser.HandleWithSubscription: ", err)
-		common.HttpErrorHandler(c, err)
-		return
+		if e, ok := err.(*common.AppError); !ok || e.RootError() != domain.ErrAlreadyExists {
+			logger.Error("ConnectFriendship.SubscribeUser.HandleWithSubscription: ", err)
+			common.HttpErrorHandler(c, err)
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, common.SimpleSuccessResponse(nil))

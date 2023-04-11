@@ -5,7 +5,7 @@ import (
 
 	"github.com/phantranhieunhan/s3-assignment/common"
 	"github.com/phantranhieunhan/s3-assignment/common/logger"
-	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/command"
+	"github.com/phantranhieunhan/s3-assignment/module/friendship/app/command/payload"
 	"github.com/phantranhieunhan/s3-assignment/module/friendship/port/constant"
 
 	"github.com/gin-gonic/gin"
@@ -48,8 +48,8 @@ func (s *Server) SubscribeUser(c *gin.Context) {
 		return
 	}
 
-	err = s.app.Commands.SubscribeUser.Handle(c.Request.Context(), command.SubscriberUserPayloads{
-		command.SubscriberUserPayload{
+	err = s.app.Commands.SubscribeUser.Handle(c.Request.Context(), payload.SubscriberUserPayloads{
+		payload.SubscriberUserPayload{
 			Requestor: req.Requestor,
 			Target:    req.Target,
 		},
