@@ -35,4 +35,7 @@ type Queries struct {
 	ListUpdatesUser interface {
 		Handle(ctx context.Context, email string, text string) ([]string, error)
 	}
+	ListSubscriptions interface {
+		Handle(ctx context.Context) ([]domain.FullSubscription, error)
+	}
 }

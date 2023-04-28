@@ -53,6 +53,12 @@ type Subscription struct {
 	Status       SubscriptionStatus `json:"status"`
 }
 
+type FullSubscription struct {
+	Subscription
+	User       User
+	Subscriber User
+}
+
 func (r Subscription) DomainName() string {
 	return "Subscription"
 }
@@ -77,4 +83,5 @@ type SubscriptionRepo interface {
 	UpdateStatus(ctx context.Context, id string, status SubscriptionStatus) error
 	UpsertSubscription(ctx context.Context, sub Subscription) (string, error)
 	GetSubscriptionEmailsByUserIDAndEmails(ctx context.Context, id string, emails []string) ([]string, error)
+	GetAll(ctx context.Context) ([]FullSubscription, error)
 }

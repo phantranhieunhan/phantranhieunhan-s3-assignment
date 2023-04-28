@@ -13,7 +13,10 @@ func (r User) DomainName() string {
 	return "User"
 }
 
+type Users []User
+
 type UserRepo interface {
 	GetUserIDsByEmails(ctx context.Context, emails []string) (map[string]string, error)
 	GetEmailsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, error)
+	// GetAll(ctx context.Context) (Users, error)
 }

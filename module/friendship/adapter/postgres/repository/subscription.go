@@ -100,3 +100,34 @@ func (s SubscriptionRepository) GetSubscriptionEmailsByUserIDAndEmails(ctx conte
 
 	return result, nil
 }
+
+func (s SubscriptionRepository) GetAll(ctx context.Context) ([]domain.FullSubscription, error) {
+	list := make([]view.FullSubscription, 0)
+	query := `SELECT s.id, s.user_id, u.email as user_email, s.subscriber_id, u.email as subscriber_email, s.status, s.created_at, s.updated_at
+	FROM public.subscriptions s
+	left join users u ON s.user_id = u.id 
+	left join users u2 on s.subscriber_id = u.id `
+	err := model.NewQuery(
+		qm.SQL(query),
+	).Bind(ctx, s.db.Model(ctx), &list)
+	if err != nil {
+		return []domain.FullSubscription{}, common.ErrDB(err)
+	}
+
+	result := make([]domain.FullSubscription, len(list))
+	for i := range result {
+		l := list[i]
+		result[i] = domain.FullSubscription{
+			Subscription: domain.Subscription{
+				Base:         domain.Base{Id: l.Id, CreatedAt: l.CreatedAt, UpdatedAt: l.UpdatedAt},
+				UserID:       l.UserID,
+				SubscriberID: l.SubscriberID,
+				Status:       l.Status,
+			},
+			User:       domain.User{Username: l.UserEmail},
+			Subscriber: domain.User{Username: l.SubscriberEmail},
+		}
+	}
+
+	return result, nil
+}

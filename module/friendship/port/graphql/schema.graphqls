@@ -1,0 +1,48 @@
+type Friendship {
+  id: String!
+  created_at: Float!
+  updated_at: Float!
+
+  user_id: String!
+  friend_id: String!
+  status: FriendshipStatus!
+}
+
+enum FriendshipStatus {
+  FRIENDSHIP_STATUS_INVALID
+  FRIENDSHIP_STATUS_FRIENDED
+  FRIENDSHIP_STATUS_PENDING
+  FRIENDSHIP_STATUS_UNFRIENDED
+  FRIENDSHIP_STATUS_BLOCKED
+}
+
+type SubscriptionG {
+  id: String!
+  created_at: Float!
+  updated_at: Float!
+
+  user: User!
+  subscriber: User!
+  status: SubscriptionStatus!
+}
+
+enum SubscriptionStatus {
+  SUBSCRIPTION_STATUS_INVALID
+  SUBSCRIPTION_STATUS_SUBSCRIBED
+  SUBSCRIPTION_STATUS_UNSUBSCRIBED
+}
+
+type User {
+  id: String!
+  created_at: Float!
+  updated_at: Float!
+
+  username: String!
+  email: String!
+}
+
+type Query {
+  users: [User!]!
+  friendships: [Friendship!]!
+  subscriptions: [SubscriptionG!]!
+}

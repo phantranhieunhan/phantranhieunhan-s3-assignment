@@ -50,4 +50,5 @@ type FriendshipRepo interface {
 	UpdateStatus(ctx context.Context, id string, status FriendshipStatus) error
 	GetFriendshipByUserIDs(ctx context.Context, userID, friendID string) (Friendship, error)
 	GetFriendshipByUserIDAndStatus(ctx context.Context, mapEmailUser map[string]string, status ...FriendshipStatus) ([]string, error)
+	// GetAll(ctx context.Context) (Friendships, error)
 }
